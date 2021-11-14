@@ -726,9 +726,13 @@
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
                                 <connections>
-                                    <action selector="Ok:" target="XfG-lQ-9wD" id="Z0D-Jw-1ce"/>
+                                    <action selector="Ok:" target="XfG-lQ-9wD" id="bDo-Ib-6U8"/>
                                 </connections>
                             </button>
+                            <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="GqB-fY-Cnv">
+                                <rect key="frame" x="20" y="58" width="361" height="5"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                            </box>
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Faz-QV-cxh">
                                 <rect key="frame" x="316" y="13" width="72" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
@@ -752,7 +756,7 @@
                             <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="efP-6Q-kBo">
                                 <rect key="frame" x="18" y="178" width="172" height="18"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                <buttonCell key="cell" type="check" title="Show image information" bezelStyle="regularSquare" imagePosition="left" state="on" inset="2" id="Bp9-TL-aDk">
+                                <buttonCell key="cell" type="check" title="Show image information" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Bp9-TL-aDk">
                                     <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
                                     <font key="font" metaFont="system"/>
                                 </buttonCell>
@@ -760,16 +764,25 @@
                                     <action selector="infoToggle:" target="XfG-lQ-9wD" id="WD1-6D-fQt"/>
                                 </connections>
                             </button>
-                            <box verticalHuggingPriority="750" fixedFrame="YES" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="GqB-fY-Cnv">
-                                <rect key="frame" x="20" y="58" width="361" height="5"/>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ris-U9-4LE">
+                                <rect key="frame" x="316" y="173" width="72" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                            </box>
+                                <buttonCell key="cell" type="push" title="Stop" bezelStyle="rounded" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="AR0-ou-6kt">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="stop:" target="XfG-lQ-9wD" id="p0p-dS-3KM"/>
+                                </connections>
+                            </button>
                         </subviews>
                     </view>
                     <connections>
                         <outlet property="delaySelect" destination="sh7-g8-ipW" id="XnO-PX-SA0"/>
+                        <outlet property="okButton" destination="hIE-Nx-ZFb" id="bJX-eh-KYb"/>
                         <outlet property="pathName" destination="U4k-LJ-200" id="Ffp-Xo-EEc"/>
                         <outlet property="showInfo" destination="efP-6Q-kBo" id="JEv-0Q-jJh"/>
+                        <outlet property="stopButton" destination="ris-U9-4LE" id="CIh-Oi-qAV"/>
                     </connections>
                 </viewController>
                 <customObject id="rPt-NT-nkU" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>

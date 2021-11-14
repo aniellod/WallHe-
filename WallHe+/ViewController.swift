@@ -10,6 +10,8 @@ import Cocoa
 class ViewController: NSViewController {
     @IBOutlet weak var pathName: NSTextField!
     @IBOutlet weak var delaySelect: NSPopUpButton!
+    @IBOutlet var okButton: NSButtonCell!
+    @IBOutlet var stopButton: NSButton!
     
     var showInfo : Bool = false
     
@@ -17,10 +19,13 @@ class ViewController: NSViewController {
         if showInfo {
             print("checked")
             showInfo = false
+            theWork.showInfo = false
         } else {
             print("unchecked")
             showInfo = true
+            theWork.showInfo = true
         }
+        updateWallpaper(path: theWork.getCurrentFullPath(), name: theWork.getCurrentImageFile())
     }
     
     
@@ -31,10 +36,12 @@ class ViewController: NSViewController {
     @available(macOS 10.10, *)
     override func viewDidLoad() {
         super.viewDidLoad()
-        pathName.stringValue = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.absoluteString
+        pathName.stringValue = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
+        path = pathName.stringValue
         self.delay = 5 // * 60
         value += 1
-        
+        stopButton.isEnabled = false
+        okButton.isEnabled = true
             print("The value is \(value)")
     }
     
@@ -46,7 +53,6 @@ class ViewController: NSViewController {
 
     func getFileName() -> String? {
         let dialog = NSOpenPanel();
-        
         dialog.title                   = "Choose folder";
         dialog.showsResizeIndicator    = true;
         dialog.showsHiddenFiles        = false;
@@ -57,12 +63,8 @@ class ViewController: NSViewController {
             let result = dialog.url // Pathname of the file
             if (result != nil) {
                 let path: String = result!.path
-                //print("The selected path = \(path)")
-                //self.pathName.mutableSetValue(forKey: path)
                 pathName.stringValue = path
                 return path
-                // path contains the file path e.g
-                // /Users/ourcodeworld/Desktop/file.txt
             }
         }
             // User clicked on "Cancel"
@@ -75,11 +77,19 @@ class ViewController: NSViewController {
     
     @IBAction func Ok(_ sender: Any) {
         print("Ok button was preseed - path = \(path)")
-        setUp(secondsDelay: delay, path: path)
+        okButton.isEnabled = false
+        stopButton.isEnabled = true
+        setUp(secondsDelay: delay, path: path) //, instance: theWork)
     }
     
     @IBAction func exitApp(_ sender: Any) {
         exit(0)
+    }
+    
+    @IBAction func stop(_ sender: Any) {
+        okButton.isEnabled = true
+        stopButton.isEnabled = false
+        theWork.stop()
     }
     
     @IBAction func selectDelay(_ sender: Any) {

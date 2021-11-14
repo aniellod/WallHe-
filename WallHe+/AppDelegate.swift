@@ -12,6 +12,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var popoverView: NSPopover = NSPopover()
+    var storyboard: NSStoryboard = NSStoryboard()
+    var vc: ViewController = ViewController()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
@@ -19,6 +21,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem.button?.target = self
         //statusItem.button?.action = #selector(showSettings)
         statusItem.button?.action = #selector(togglePopover)
+        
+        storyboard = NSStoryboard(name: "Main", bundle: nil)
+        vc = (storyboard.instantiateController(withIdentifier: "ViewController") as?
+              ViewController)! // else {
+               //     fatalError("Unable to open viewcontroller")
+              //  }
     }
 
     @objc func togglePopover(sender: AnyObject) {
@@ -40,14 +48,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
    // @objc func showSettings() {
    @objc func showPopover(_ sender: AnyObject) {
-        let storyboard = NSStoryboard(name: "Main", bundle: nil)
-        guard let vc = storyboard.instantiateController(withIdentifier: "ViewController") as?
-                ViewController else {
-                    fatalError("Unable to open viewcontroller")
-                }
-        //let popoverView = NSPopover()
         popoverView.contentViewController = vc
-        popoverView.behavior = .applicationDefined
+        popoverView.behavior = .transient
         popoverView.show(relativeTo: statusItem.button!.bounds, of: statusItem.button!, preferredEdge: .maxY)
     }
     

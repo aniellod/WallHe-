@@ -26,13 +26,17 @@ import SwiftUI
 import CoreGraphics
 import SwiftImage // https://github.com/koher/swift-image.git
 
+let theWork = thread2()
+
 class thread2 {
-    
     var filelist: Array<String>
     var seconds: UInt32
     var currentImageFile: String
     var currentFullPath: String
     var count: Int
+    var showInfo: Bool
+    var fullpath: String
+    var thread: Thread
     
     init() {
         self.seconds = 0
@@ -40,7 +44,11 @@ class thread2 {
         self.currentImageFile = ""
         self.currentFullPath = ""
         self.count = 0
+        self.showInfo = false
+        self.fullpath = ""
+        self.thread = Thread()
     }
+    
     // because I don't really understand swift getter/setters
     func setFilelist(_ filelist: Array<String>) {
         self.filelist = filelist
@@ -71,20 +79,30 @@ class thread2 {
     }
     
     func start() {
-        let thread = Thread.init(target: self, selector: #selector(mainLoop), object: nil)
+        thread = Thread.init(target: self, selector: #selector(mainLoop), object: nil)
         thread.start()
+    }
+    
+    func stop() {
+        thread.cancel()
     }
     
     @objc func mainLoop() {
         self.filelist.shuffle()
             for imageFile in filelist {
-                let fullpath = getCurrentFullPath() + "/" // + imageFile
+                fullpath = getCurrentFullPath()
+                if getCurrentFullPath().last != "/" {
+                    fullpath += "/" // + imageFile
+                }
                 self.currentImageFile = imageFile
                 self.currentFullPath = fullpath
                 self.count+=1
-               // if debug { print("Image \(self.count) of \(filelist.count) - \(imageFile)") }
+                print("Image \(self.count) of \(filelist.count) - \(fullpath)\(imageFile)")
                 updateWallpaper(path: fullpath, name: imageFile)
                 sleep(self.seconds)
+                if thread.isCancelled {
+                    return
+                }
             }
         self.count = 0 //we're out of the loop, reset the count
         self.start() //restart loop, otherwise this thread terminates.
@@ -144,8 +162,11 @@ func buildWallpaper(sample: NSImage, text: String...) -> NSImage {
         NSAttributedString.Key.backgroundColor: NSColor.black
     ]
     
-    let drawText=NSString(string: text[0])
-
+    var drawText=NSString(string: text[0])
+    if !theWork.showInfo {
+        drawText = ""
+    }
+    
     let screenSize = NSScreen.screenSize
     let sw = screenSize!.width
     let sh = screenSize!.height
@@ -243,7 +264,7 @@ func updateWallpaper(path: String, name: String) {
         return
     }
 
-    let finalImage = buildWallpaper(sample: newImage, text: "displayedText")
+    let finalImage = buildWallpaper(sample: newImage, text: fullPath)
     
     guard finalImage.pngWrite(to: destinationURL) else {
         print("File count not be saved")
@@ -252,56 +273,13 @@ func updateWallpaper(path: String, name: String) {
     setBackground(theURL: (destinationURL.absoluteString))
 }
 
-//class EditorWindow: NSApplication {
-//    override func keyDown(with event: NSEvent) {
-//        super.keyDown(with: event)
-//        Swift.print("Caught a key down: \(event.keyCode)!")
-//    }
-//}
-
-//func myCGEventCallback(proxy : CGEventTapProxy, type : CGEventType, event : CGEvent, refcon : Optional<UnsafeMutableRawPointer>) -> Unmanaged<CGEvent>? {
-//
-//    if [.keyUp].contains(type) {
-//        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-//        if keyCode == 100 {
-//            if (showPath.value == false && showName.value == false) {
-//                showName.value = true
-//            } else {
-//                if (showPath.value == false && showName.value == true) {
-//                    showPath.value = true
-//                    showName.value = false
-//                } else {
-//                    if (showPath.value == true && showName.value == false) {
-//                        showPath.value = false
-//                        showName.value = false
-//                    }
-//                }
-//            }
-//            updateWallpaper(path: theWork.getCurrentFullPath(), name: theWork.getCurrentImageFile())
-//        }
-//        if keyCode == 101 {
-//            theWork.setSeconds(theWork.getSeconds() + UInt32(5))
-//            print("Setting delay to \(theWork.getSeconds()) seconds.")
-//        }
-//        if keyCode == 98 {
-//            if theWork.getSeconds() - UInt32(5) > 0 {
-//                theWork.setSeconds(theWork.getSeconds() - UInt32(5))
-//            }
-//            print("Setting delay to \(theWork.getSeconds()) seconds.")
-//        }
-//        event.setIntegerValueField(.keyboardEventKeycode, value: keyCode)
-//        //print(keyCode)
-//    }
-//    return Unmanaged.passRetained(event)
-//}
-
 func setUp(secondsDelay: Int, path: String) {
     let filemgr = FileManager.default
     var dirName = ""
     var filelist: Array<String> = []
 
     if !filemgr.fileExists(atPath: path) {
-        dirName = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path + "/"
+        dirName = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
     } else {
         dirName = path
     }
@@ -326,7 +304,7 @@ func setUp(secondsDelay: Int, path: String) {
         exit(1)
     }
 
-    let theWork = thread2()
+    //let theWork = thread2()
     theWork.setFilelist(filelist)
     theWork.setSeconds(seconds)
     theWork.setFullPath(path)
