@@ -2,14 +2,15 @@
 //  AppDelegate.swift
 //  WallHe+
 //
-//  Created by Aniello Di Meglio (Admin) on 2021-11-11.
+//  Created by Aniello Di Meglio on 2021-11-11.
 //
 
 import Cocoa
 
+//var vc: ViewController = ViewController()
+
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
-
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var popoverView: NSPopover = NSPopover()
     var storyboard: NSStoryboard = NSStoryboard()
@@ -19,14 +20,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Insert code here to initialize your application
         statusItem.button?.title = "🌅"
         statusItem.button?.target = self
-        //statusItem.button?.action = #selector(showSettings)
         statusItem.button?.action = #selector(togglePopover)
         
         storyboard = NSStoryboard(name: "Main", bundle: nil)
         vc = (storyboard.instantiateController(withIdentifier: "ViewController") as?
-              ViewController)! // else {
-               //     fatalError("Unable to open viewcontroller")
-              //  }
+              ViewController)!
     }
 
     @objc func togglePopover(sender: AnyObject) {
@@ -46,7 +44,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return true
     }
 
-   // @objc func showSettings() {
    @objc func showPopover(_ sender: AnyObject) {
         popoverView.contentViewController = vc
         popoverView.behavior = .transient
@@ -57,4 +54,3 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             popoverView.performClose(sender)
         }
 }
-

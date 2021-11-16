@@ -1,6 +1,6 @@
 //
 //  main.swift
-//  wallhe requires MacOS 10.15+
+//  wallhe (requires MacOS 10.15+)
 //
 //  Swift 5
 //
@@ -16,7 +16,7 @@
 //      Swift-Image to handle .png:     https://github.com/koher/swift-image.git
 //      Accessibility control to enable keyboard control of wallpaper
 //
-//  Command like based very basic wallpaper controler for MacOS 10.15+
+//  Very basic wallpaper controler for MacOS 10.15+
 //
 //  Specify image folder and delay, Wallhe will randomly pick an image, resize/tile it to fit all visible desktops then loop through all images. Control-C to exit.
 //
@@ -79,6 +79,10 @@ class thread2 {
     }
     
     func start() {
+        //var thread: Thread
+        filelist.removeAll()
+        filelist = buildFileList(getCurrentFullPath())
+        print("path= \(self.currentFullPath) size of filelist=\(filelist.count)")
         thread = Thread.init(target: self, selector: #selector(mainLoop), object: nil)
         thread.start()
     }
@@ -96,9 +100,16 @@ class thread2 {
                 }
                 self.currentImageFile = imageFile
                 self.currentFullPath = fullpath
+                //addLogItem(imageFile)
                 self.count+=1
+                let countString = String(self.count) + "/" + String(filelist.count) + " - "
+                DispatchQueue.main.async {
+             //       vc.addLogItem(countString + imageFile)
+                }
                 print("Image \(self.count) of \(filelist.count) - \(fullpath)\(imageFile)")
-                updateWallpaper(path: fullpath, name: imageFile)
+                autoreleasepool {
+                    updateWallpaper(path: fullpath, name: imageFile)
+                }
                 sleep(self.seconds)
                 if thread.isCancelled {
                     return
@@ -201,12 +212,14 @@ extension NSImage {
         return bitmapImage.representation(using: .png, properties: [:])
     }
     func pngWrite(to url: URL, options: Data.WritingOptions = .atomic) -> Bool {
-        do {
-            try pngData?.write(to: url, options: options)
-            return true
-        } catch {
-             print(error)
+        autoreleasepool {
+            do {
+                try pngData?.write(to: url, options: options)
+                return true
+            } catch {
+                print(error)
             return false
+            }
         }
     }
 }
@@ -224,6 +237,7 @@ func resizedImage(at url: URL, for size: CGSize) -> NSImage? {
         else {
             return nil
         }
+        
         let context = CGContext(data: nil,
                                 width: Int(size.width),
                                 height: Int(size.height),
@@ -232,10 +246,11 @@ func resizedImage(at url: URL, for size: CGSize) -> NSImage? {
                                 space: image.colorSpace ?? CGColorSpace(name: CGColorSpace.sRGB)!,
                                 bitmapInfo: image.bitmapInfo.rawValue)
         context?.interpolationQuality = .high
-        context?.draw(image, in: CGRect(origin: .zero, size: size))
-
+        autoreleasepool {
+            context?.draw(image, in: CGRect(origin: .zero, size: size))
+        } 
         guard let scaledImage = context?.makeImage() else { return nil }
-
+        
         return NSImage(cgImage: scaledImage,
                        size: CGSize(width: size.width,height: size.height))
     }
@@ -284,13 +299,26 @@ func setUp(secondsDelay: Int, path: String) {
         dirName = path
     }
     
-    let directoryURL = URL(fileURLWithPath: dirName)
-    
-    do {
-        filelist = try filemgr.contentsOfDirectory(atPath: dirName)
-    } catch { print(error) }
+    filelist = buildFileList(dirName)
 
     let seconds: UInt32 = UInt32(abs(Int(exactly: secondsDelay)!))
+    
+    //let theWork = thread2()
+    theWork.setFilelist(filelist)
+    theWork.setSeconds(seconds)
+    theWork.setFullPath(path)
+    theWork.start()
+}
+
+func buildFileList(_ pathToSearch: String) -> Array<String> {
+    let filemgr = FileManager.default
+    var filelist: Array<String> = []
+    
+    let directoryURL = URL(fileURLWithPath: pathToSearch)
+    print("The function's value = \(pathToSearch)")
+    do {
+        filelist = try filemgr.contentsOfDirectory(atPath: pathToSearch)
+    } catch { print(error) }
     
     filelist = filelist.filter{
            $0.lowercased().contains(".jp")
@@ -303,10 +331,5 @@ func setUp(secondsDelay: Int, path: String) {
         print("No images found in directory \(String(describing: directoryURL))")
         exit(1)
     }
-
-    //let theWork = thread2()
-    theWork.setFilelist(filelist)
-    theWork.setSeconds(seconds)
-    theWork.setFullPath(path)
-    theWork.start()
+    return filelist
 }
