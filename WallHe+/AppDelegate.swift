@@ -4,27 +4,31 @@
 //
 //  Created by Aniello Di Meglio on 2021-11-11.
 //
+//  Copyright (C) 2021 Aniello Di Meglio
+//
+//  MIT License
 
 import Cocoa
 
-//var vc: ViewController = ViewController()
+var vc: ViewController = ViewController()
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var popoverView: NSPopover = NSPopover()
     var storyboard: NSStoryboard = NSStoryboard()
-    var vc: ViewController = ViewController()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
-        statusItem.button?.title = "🌅"
+        let itemImage = NSImage(named: "Wallpapers-icon16")
+        itemImage?.isTemplate = true
+        statusItem.button?.image = itemImage
         statusItem.button?.target = self
         statusItem.button?.action = #selector(togglePopover)
         
         storyboard = NSStoryboard(name: "Main", bundle: nil)
         vc = (storyboard.instantiateController(withIdentifier: "ViewController") as?
               ViewController)!
+        togglePopover(sender: self)
     }
 
     @objc func togglePopover(sender: AnyObject) {

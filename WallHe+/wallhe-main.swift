@@ -19,7 +19,10 @@
 //  Very basic wallpaper controler for MacOS 10.15+
 //
 //  Specify image folder and delay, Wallhe will randomly pick an image, resize/tile it to fit all visible desktops then loop through all images. Control-C to exit.
+
+//  Copyright (C) 2021 Aniello Di Meglio
 //
+//  MIT License
 
 import Foundation
 import SwiftUI
@@ -27,6 +30,7 @@ import CoreGraphics
 import SwiftImage // https://github.com/koher/swift-image.git
 
 let theWork = thread2()
+//var theFilelist: Array<String> = []
 
 class thread2 {
     var filelist: Array<String>
@@ -49,72 +53,81 @@ class thread2 {
         self.thread = Thread()
     }
     
-    // because I don't really understand swift getter/setters
-    func setFilelist(_ filelist: Array<String>) {
-        self.filelist = filelist
+    var fileList: Array<String> {
+        get { return filelist }
+        set { filelist = newValue }
     }
     
-    func setSeconds(_ seconds: UInt32) {
-        self.seconds = seconds
+    var delay: UInt32 {
+        get { return seconds }
+        set { seconds = newValue }
     }
     
-    func setFullPath(_ path: String) {
-        self.currentFullPath = path
+    var directory: String {
+        get { return currentFullPath }
+        set { currentFullPath = newValue }
     }
     
-    func getFilelist() -> Array<String> {
-        return self.filelist
+    var imageFile: String {
+        get { return currentImageFile }
+        set { currentImageFile = newValue }
     }
     
-    func getCurrentImageFile() -> String {
-        return self.currentImageFile
-    }
-    
-    func getCurrentFullPath() -> String {
-        return self.currentFullPath
-    }
-    
-    func getSeconds() -> UInt32 {
-        return self.seconds
+    func load() {
+        filelist.removeAll()
+        filelist = buildFileList(directory)
+        filelist.shuffle()
+        count = 0
     }
     
     func start() {
-        //var thread: Thread
-        filelist.removeAll()
-        filelist = buildFileList(getCurrentFullPath())
-        print("path= \(self.currentFullPath) size of filelist=\(filelist.count)")
         thread = Thread.init(target: self, selector: #selector(mainLoop), object: nil)
         thread.start()
     }
     
     func stop() {
-        thread.cancel()
+        while thread.isExecuting {
+            thread.cancel()
+        }
+    }
+    
+    func skip() {
+        while thread.isExecuting {
+            thread.cancel()
+        }
+        thread = Thread.init(target: self, selector: #selector(mainLoop), object: nil)
+        thread.start()
     }
     
     @objc func mainLoop() {
-        self.filelist.shuffle()
-            for imageFile in filelist {
-                fullpath = getCurrentFullPath()
-                if getCurrentFullPath().last != "/" {
-                    fullpath += "/" // + imageFile
-                }
-                self.currentImageFile = imageFile
-                self.currentFullPath = fullpath
-                //addLogItem(imageFile)
-                self.count+=1
-                let countString = String(self.count) + "/" + String(filelist.count) + " - "
-                DispatchQueue.main.async {
-             //       vc.addLogItem(countString + imageFile)
-                }
-                print("Image \(self.count) of \(filelist.count) - \(fullpath)\(imageFile)")
-                autoreleasepool {
-                    updateWallpaper(path: fullpath, name: imageFile)
-                }
-                sleep(self.seconds)
+        let initCount = filelist.count
+        for i in count..<filelist.count {
+            let imageFile = filelist[i]
+                fullpath = directory
+            if directory.last != "/" {
+                    fullpath += "/"
+            }
+            self.currentImageFile = imageFile
+            self.currentFullPath = fullpath
+            self.count+=1
+            let countString = String(self.count) + "/" + String(filelist.count) + " - "
+            DispatchQueue.main.async {
+                vc.addLogItem(countString + imageFile)
+            }
+            autoreleasepool {
+                updateWallpaper(path: fullpath, name: imageFile)
+            }
+           // print("Initcount=\(initCount) fileList.count=\(fileList.count)")
+            for _ in 1..<seconds { // checks for cancellation every second
+                sleep(1)
                 if thread.isCancelled {
                     return
                 }
             }
+            if initCount != fileList.count { //if we have a new count, restart with the right number of images.
+                break
+            }
+        }
         self.count = 0 //we're out of the loop, reset the count
         self.start() //restart loop, otherwise this thread terminates.
     }
@@ -157,7 +170,7 @@ func fileName() -> String {
                 let deleted = FileManager()
                 let fileToDeleteURL = url.appendingPathComponent("wallhe-wallpaper2.png")
                 try deleted.removeItem(at: fileToDeleteURL!)
-               } catch { return fileName }
+            } catch { return fileName }
         }
     }
     return fileName
@@ -188,9 +201,14 @@ func buildWallpaper(sample: NSImage, text: String...) -> NSImage {
     
     do {
         for x in 0...tiles {
-            sample.draw(at: NSPoint(x: Int(sample.size.width) * x, y: 0), from: NSRect.zero, operation: NSCompositingOperation.sourceOver, fraction: 1.0)
+            sample.draw(at: NSPoint(x: Int(sample.size.width) * x, y: 0),
+                        from: NSRect.zero,
+                        operation: NSCompositingOperation.sourceOver,
+                        fraction: 1.0)
         }
-        sample.draw(at: NSPoint(x: Int(sample.size.width) * tiles, y: 0), from: NSRect(x: 0, y:0, width: (sw - sample.size.width * 2), height: sh), operation: NSCompositingOperation.sourceOver, fraction: 1.0)
+        sample.draw(at: NSPoint(x: Int(sample.size.width) * tiles, y: 0),
+                    from: NSRect(x: 0, y:0, width: (sw - sample.size.width * 2), height: sh),
+                    operation: NSCompositingOperation.sourceOver, fraction: 1.0)
     }
     drawText.draw(at: NSPoint(x: 20, y: sh - 60), withAttributes: textFontAttributes)
     resultImage.unlockFocus()
@@ -208,7 +226,9 @@ extension NSScreen{
 // extension to NSImage to write PNG formatted images for the wallpaper
 extension NSImage {
     var pngData: Data? {
-        guard let tiffRepresentation = tiffRepresentation, let bitmapImage = NSBitmapImageRep(data: tiffRepresentation) else { return nil }
+        guard   let tiffRepresentation = tiffRepresentation,
+                let bitmapImage = NSBitmapImageRep(data: tiffRepresentation)
+        else { return nil }
         return bitmapImage.representation(using: .png, properties: [:])
     }
     func pngWrite(to url: URL, options: Data.WritingOptions = .atomic) -> Bool {
@@ -258,14 +278,12 @@ func resizedImage(at url: URL, for size: CGSize) -> NSImage? {
 
 // updateWallpaper: input path to image
 func updateWallpaper(path: String, name: String) {
-    //print("The path is \(path) - file name is \(name)\n")
     let desktopURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!
     let destinationURL: URL = desktopURL.appendingPathComponent(fileName())
     
     let fullPath = path + name
     let theURL = URL(fileURLWithPath: fullPath)
     let origImage = NSImage(contentsOf: theURL)
-    //print("theURL = \(theURL)")
     guard let height = origImage?.size.height else {
         print("Error in calculating height of image at \(path)")
         return
@@ -300,36 +318,72 @@ func setUp(secondsDelay: Int, path: String) {
     }
     
     filelist = buildFileList(dirName)
-
+    
+    if filelist.count == 0 {
+        return
+    }
+    
     let seconds: UInt32 = UInt32(abs(Int(exactly: secondsDelay)!))
     
-    //let theWork = thread2()
-    theWork.setFilelist(filelist)
-    theWork.setSeconds(seconds)
-    theWork.setFullPath(path)
-    theWork.start()
+    theWork.fileList = filelist
+    theWork.delay = seconds
+    theWork.directory = path
+    theWork.load()
 }
 
 func buildFileList(_ pathToSearch: String) -> Array<String> {
     let filemgr = FileManager.default
-    var filelist: Array<String> = []
+    var theFilelist: Array<String> = []
     
     let directoryURL = URL(fileURLWithPath: pathToSearch)
-    print("The function's value = \(pathToSearch)")
     do {
-        filelist = try filemgr.contentsOfDirectory(atPath: pathToSearch)
+        theFilelist = try filemgr.contentsOfDirectory(atPath: pathToSearch)
     } catch { print(error) }
     
-    filelist = filelist.filter{
-           $0.lowercased().contains(".jp")
-        || $0.lowercased().contains(".png")
-        || $0.lowercased().contains(".bmp")
+//    filelist = filelist.filter{  //is there a way for MacOS to return only supported imagefiles without relying on file extensions?
+//           $0.lowercased().contains(".jp")
+//        || $0.lowercased().contains(".png")
+//        || $0.lowercased().contains(".bmp")
+//    }
+    
+    let queue = DispatchQueue(label: "on.images")
+    queue.async {
+        theFilelist = theFilelist.filter{ NSImage(contentsOfFile: pathToSearch+"/"+$0) != nil } //filter out non-images
+   
+        if theFilelist.count == 0 {
+            print()
+            print("No images found in directory \(String(describing: directoryURL))")
+        }
+        //print("filelist.count=\(theFilelist.count)")
+        theWork.fileList = theFilelist //update the number of images we actually have
     }
-
-    guard filelist.count > 0 else {
-        print()
-        print("No images found in directory \(String(describing: directoryURL))")
-        exit(1)
-    }
-    return filelist
+    return theFilelist
 }
+
+//func buildFileList(_ pathToSearch: String) -> Array<String> {
+//    let filemgr = FileManager.default
+//    var filelist: Array<String> = []
+//
+//    let directoryURL = URL(fileURLWithPath: pathToSearch)
+//    do {
+//        filelist = try filemgr.contentsOfDirectory(atPath: pathToSearch)
+//    } catch { print(error) }
+//
+////    filelist = filelist.filter{  //is there a way for MacOS to return only supported imagefiles without relying on file extensions?
+////           $0.lowercased().contains(".jp")
+////        || $0.lowercased().contains(".png")
+////        || $0.lowercased().contains(".bmp")
+////    }
+//
+//    let queue = DispatchQueue(label: "on.images")
+//    queue.async {
+//        filelist = filelist.filter{ NSImage(contentsOfFile: pathToSearch+"/"+$0) != nil } //filter out non-images
+//
+//        if filelist.count == 0 {
+//            print()
+//            print("No images found in directory \(String(describing: directoryURL))")
+//        }
+//        print("filelist.count=\(filelist.count)")
+//    }
+//    return filelist
+//}

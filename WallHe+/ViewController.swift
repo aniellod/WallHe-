@@ -4,6 +4,9 @@
 //
 //  Created by Aniello Di Meglio on 2021-11-11.
 //
+//  Copyright (C) 2021 Aniello Di Meglio
+//
+//  MIT License
 
 import Cocoa
 import SwiftUI
@@ -15,34 +18,38 @@ class ViewController: NSViewController {
     @IBOutlet var stopButton: NSButton!
     @IBOutlet var log: NSTextView!
     @IBOutlet var skipButton: NSButton!
-    
+    @IBOutlet var showInfoBox: NSButton!
     
     var showInfo : Bool = false
     var isRunning : Bool = false
+    var menuSelect : Int = 2
+    var delay: Int = 0
+    var path: String = ""
+    var lePopOver = NSPopover()
     
     @IBAction func infoToggle(_ sender: NSButton) {
-        if !showInfo {
-            print("checked")
+        setInfo()
+    }
+    
+    func setInfo() {
+        if showInfoBox.state == .off {
             showInfo = false
             theWork.showInfo = false
         } else {
-            print("unchecked")
             showInfo = true
             theWork.showInfo = true
         }
-        updateWallpaper(path: theWork.getCurrentFullPath(), name: theWork.getCurrentImageFile())
+        updateWallpaper(path: theWork.directory, name: theWork.imageFile)
     }
     
-    
-    var delay: Int = 0
-    var path: String = ""
-    
-    @available(macOS 10.10, *)
     override func viewDidLoad() {
         super.viewDidLoad()
+        log.maxSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
+        log.isHorizontallyResizable = true
+        log.textContainer?.widthTracksTextView = false
+        log.textContainer?.containerSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
         pathName.stringValue = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
         path = pathName.stringValue
-        self.delay = 10
         stopButton.isEnabled = false
         okButton.isEnabled = true
         delaySelect.removeAllItems()
@@ -56,21 +63,28 @@ class ViewController: NSViewController {
                                  "Every day"
                                 ])
         loadDefaults()
-       // selectDelay(self)
-        self.delay = 10
-    }
-    
-    func addLogItem(_ fileName: String) {
-        log.insertText(fileName + "\n")
-    }
-   
-    @available(macOS 11.0, *)
-    struct ContentView: View {
-        @State private var text = "HELLOHELLO"
-        
-        var body: some View {
-            TextEditor(text: $text)
+
+        self.delay = getSeconds(selection: menuSelect)
+        if isRunning {
+            stopButton.isEnabled = true
+            skipButton.isEnabled = true
+            setUp(secondsDelay: delay, path: path)
+            okButton.isEnabled = false
+            stopButton.title = "Stop"
+            theWork.start()
         }
+    }
+
+    func addLogItem(_ fileName: String) {
+        let formatter = DateFormatter()
+        let now = Date()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        let date = formatter.string(from: now)
+      //  log.insertText(date , replacementRange: NSRange(location: 0, length: date.count))
+        log.isEditable = true
+        log.insertText(date + " - " + fileName + "\n")
+        log.isEditable = false
     }
     
     func saveDefaults() {
@@ -79,24 +93,27 @@ class ViewController: NSViewController {
         mySettings.set(self.path, forKey: "path")
         mySettings.set(showInfo, forKey: "showinformation")
         mySettings.set(isRunning, forKey: "isRunning")
+        mySettings.set(theWork.count, forKey: "count")
     }
     
     func loadDefaults() {
         let mySettings = UserDefaults.standard
-        let menuSelect = mySettings.object(forKey: "menuSelect") as? Int ?? 2
+        menuSelect = mySettings.object(forKey: "menuSelect") as? Int ?? 2
         delaySelect.select(delaySelect.menu?.item(at: menuSelect))
         self.path = mySettings.object(forKey: "path") as? String ?? FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
         pathName.stringValue = self.path
         showInfo = mySettings.bool(forKey: "showinformation")
+        if showInfo == true { showInfoBox.state = .on } else { showInfoBox.state = .off }
+        setInfo()
+        theWork.count = mySettings.object(forKey: "count") as? Int ?? 0
         isRunning = mySettings.bool(forKey: "isRunning")
-        if isRunning {
-            Ok(self)
-        }
+        stopButton.title = "Start"
     }
     
     override var representedObject: Any? {
         didSet {
         // Update the view, if already loaded.
+
         }
     }
 
@@ -107,33 +124,28 @@ class ViewController: NSViewController {
         dialog.showsHiddenFiles        = false;
         dialog.allowsMultipleSelection = false;
         dialog.canChooseDirectories = true
-
+        dialog.canChooseFiles = false
+        
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
             let result = dialog.url // Pathname of the file
             if (result != nil) {
-                let path: String = result!.path
-                pathName.stringValue = path
-                return path
+                let selectedPath: String = result!.path
+                self.pathName.stringValue = selectedPath // show path in user interface
+                return selectedPath
             }
         }
             // User clicked on "Cancel"
             return nil
     }
-    
+
     @IBAction func selectPath(_ sender: Any) {
-//        theWork.stop()
-//        okButton.isEnabled = true
-//        stopButton.isEnabled = false
-//        skipButton.isEnabled = false
-        path = getFileName() ?? FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
+            path = self.getFileName() ?? FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
     }
     
     @IBAction func Ok(_ sender: Any) {
-        print("Ok button was preseed - path = \(path)")
-        okButton.isEnabled = false
+        //print("Ok button was preseed - path = \(path) or \(pathName.stringValue)")
         stopButton.isEnabled = true
         skipButton.isEnabled = true
-        isRunning = true
         setUp(secondsDelay: delay, path: path)
     }
     
@@ -143,42 +155,53 @@ class ViewController: NSViewController {
     }
     
     @IBAction func stop(_ sender: Any) {
-        okButton.isEnabled = true
-        stopButton.isEnabled = false
-        skipButton.isEnabled = false
-        theWork.stop()
-        isRunning = false
+        if isRunning {
+            okButton.isEnabled = true
+            stopButton.title = "Start"
+            skipButton.isEnabled = false
+            theWork.stop()
+            isRunning = false
+        } else {
+            okButton.isEnabled = false
+            stopButton.title = "Stop"
+            skipButton.isEnabled = true
+            theWork.start()
+            isRunning = true
+        }
         saveDefaults()
     }
     
     @IBAction func selectDelay(_ sender: Any) {
-        switch delaySelect.indexOfSelectedItem {
-        case 0:
-            self.delay = 5
-        case 1:
-            self.delay = 1 * 60
-        case 2:
-            self.delay = 5 * 60
-        case 3:
-            self.delay = 15 * 60
-        case 4:
-            self.delay = 30 * 60
-        case 5:
-            self.delay = 60 * 60
-        case 6:
-            self.delay = 60 * 24 * 60
-        default:
-            self.delay = 5 * 60
-        }
+        self.delay = getSeconds(selection: delaySelect.indexOfSelectedItem)
+        theWork.seconds = UInt32(self.delay)
         saveDefaults()
-        theWork.stop()
-        theWork.setSeconds(UInt32(self.delay))
-        theWork.start()
+    }
+    
+    func getSeconds(selection: Int) -> Int {
+        var secs = 0
+        switch selection {
+        case 0:
+            secs = 5
+        case 1:
+            secs = 1 * 60
+        case 2:
+            secs = 5 * 60
+        case 3:
+            secs = 15 * 60
+        case 4:
+            secs = 30 * 60
+        case 5:
+            secs = 60 * 60
+        case 6:
+            secs = 60 * 24 * 60
+        default:
+            secs = 5 * 60
+        }
+        return secs
     }
     
     @IBAction func nextImage(_ sender: NSButton) {
-        theWork.stop()
-        theWork.start()
+        theWork.skip()
     }
 }
 
