@@ -897,7 +897,7 @@
                                 <textFieldCell key="cell" lineBreakMode="truncatingTail" allowsUndo="NO" alignment="center" id="Q9L-S9-wCY">
                                     <font key="font" metaFont="system"/>
                                     <string key="title">WallHe+ ©2021 Aniello Di Meglio
-MIT License - v1.01</string>
+MIT License - v1.02</string>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>

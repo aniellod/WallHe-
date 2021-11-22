@@ -142,8 +142,8 @@ class ViewController: NSViewController {
             path = self.getFileName() ?? FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
     }
     
-    @IBAction func Ok(_ sender: Any) {
-        //print("Ok button was preseed - path = \(path) or \(pathName.stringValue)")
+    @IBAction func Ok(_ sender: Any) {  //load button
+        errCounter = 0
         stopButton.isEnabled = true
         skipButton.isEnabled = true
         setUp(secondsDelay: delay, path: path)

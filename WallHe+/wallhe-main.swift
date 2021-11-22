@@ -29,8 +29,17 @@ import SwiftUI
 import CoreGraphics
 import SwiftImage // https://github.com/koher/swift-image.git
 
+extension String {
+    func slash() -> String {
+        if self.last != "/"
+        { return self + "/"
+        }
+        return self
+    }
+}
+
 let theWork = thread2()
-//var theFilelist: Array<String> = []
+var errCounter: Int = 0
 
 class thread2 {
     var filelist: Array<String>
@@ -39,7 +48,6 @@ class thread2 {
     var currentFullPath: String
     var count: Int
     var showInfo: Bool
-    var fullpath: String
     var thread: Thread
     
     init() {
@@ -49,7 +57,6 @@ class thread2 {
         self.currentFullPath = ""
         self.count = 0
         self.showInfo = false
-        self.fullpath = ""
         self.thread = Thread()
     }
     
@@ -71,6 +78,17 @@ class thread2 {
     var imageFile: String {
         get { return currentImageFile }
         set { currentImageFile = newValue }
+    }
+    
+    func errorMessage(_ value: String) {
+        if let window = NSApp.keyWindow {
+            let errorMessage = NSAlert()
+            errorMessage.alertStyle = .critical
+            errorMessage.messageText = "Error"
+            errorMessage.informativeText = value
+            errorMessage.addButton(withTitle: "Stop")
+            errorMessage.beginSheetModal(for: window, completionHandler: nil)
+        }
     }
     
     func load() {
@@ -101,34 +119,34 @@ class thread2 {
     
     @objc func mainLoop() {
         let initCount = filelist.count
+        var countFlag = false
+
         for i in count..<filelist.count {
             let imageFile = filelist[i]
-                fullpath = directory
-            if directory.last != "/" {
-                    fullpath += "/"
-            }
             self.currentImageFile = imageFile
-            self.currentFullPath = fullpath
+            self.currentFullPath = directory.slash()
             self.count+=1
             let countString = String(self.count) + "/" + String(filelist.count) + " - "
             DispatchQueue.main.async {
                 vc.addLogItem(countString + imageFile)
             }
             autoreleasepool {
-                updateWallpaper(path: fullpath, name: imageFile)
+                updateWallpaper(path: self.currentFullPath, name: imageFile)
             }
-           // print("Initcount=\(initCount) fileList.count=\(fileList.count)")
             for _ in 1..<seconds { // checks for cancellation every second
                 sleep(1)
                 if thread.isCancelled {
                     return
                 }
             }
-            if initCount != fileList.count { //if we have a new count, restart with the right number of images.
+            if initCount != fileList.count { //if we have a new count, restart but continue from where we were.
+                countFlag = true
                 break
             }
         }
-        self.count = 0 //we're out of the loop, reset the count
+        if !countFlag {
+            self.count = 0 //we're out of the loop, reset the count
+        }
         self.start() //restart loop, otherwise this thread terminates.
     }
 }
@@ -251,7 +269,7 @@ func resizedImage(at url: URL, for size: CGSize) -> NSImage? {
         let result = thisImage?.resizedTo(width: Int(size.width), height: Int(size.height))
         let scaledImage = result?.nsImage
         return scaledImage
-    } else { // this is faster but doesn't seem to handle png files.
+    } else { // this is faster but needs fix to handle reading and resizing png files.
         guard let imageSource = CGImageSourceCreateWithURL(url as NSURL, nil),
             let image = CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
         else {
@@ -285,7 +303,7 @@ func updateWallpaper(path: String, name: String) {
     let theURL = URL(fileURLWithPath: fullPath)
     let origImage = NSImage(contentsOf: theURL)
     guard let height = origImage?.size.height else {
-        print("Error in calculating height of image at \(path)")
+        print("Error in calculating height of image at \(path)\(name)")
         return
     }
     let ratio = NSScreen.screenHeight! / height
@@ -311,7 +329,7 @@ func setUp(secondsDelay: Int, path: String) {
     var dirName = ""
     var filelist: Array<String> = []
 
-    if !filemgr.fileExists(atPath: path) {
+    if !filemgr.fileExists(atPath: path) { //if directory can't be found (removed?) default to User/.../Images/
         dirName = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
     } else {
         dirName = path
@@ -335,55 +353,26 @@ func buildFileList(_ pathToSearch: String) -> Array<String> {
     let filemgr = FileManager.default
     var theFilelist: Array<String> = []
     
-    let directoryURL = URL(fileURLWithPath: pathToSearch)
     do {
         theFilelist = try filemgr.contentsOfDirectory(atPath: pathToSearch)
     } catch { print(error) }
-    
-//    filelist = filelist.filter{  //is there a way for MacOS to return only supported imagefiles without relying on file extensions?
-//           $0.lowercased().contains(".jp")
-//        || $0.lowercased().contains(".png")
-//        || $0.lowercased().contains(".bmp")
-//    }
-    
+        
     let queue = DispatchQueue(label: "on.images")
     queue.async {
         theFilelist = theFilelist.filter{ NSImage(contentsOfFile: pathToSearch+"/"+$0) != nil } //filter out non-images
-   
         if theFilelist.count == 0 {
+            DispatchQueue.main.async {
+                vc.stop("_Any_")
+                theWork.stop()
+                if (errCounter == 0) {
+                theWork.errorMessage("Error: No images found in directory \(pathToSearch)")
+                 errCounter+=1
+                }
+            }
             print()
-            print("No images found in directory \(String(describing: directoryURL))")
+            print("No images found in directory \(pathToSearch))")
         }
-        //print("filelist.count=\(theFilelist.count)")
         theWork.fileList = theFilelist //update the number of images we actually have
     }
     return theFilelist
 }
-
-//func buildFileList(_ pathToSearch: String) -> Array<String> {
-//    let filemgr = FileManager.default
-//    var filelist: Array<String> = []
-//
-//    let directoryURL = URL(fileURLWithPath: pathToSearch)
-//    do {
-//        filelist = try filemgr.contentsOfDirectory(atPath: pathToSearch)
-//    } catch { print(error) }
-//
-////    filelist = filelist.filter{  //is there a way for MacOS to return only supported imagefiles without relying on file extensions?
-////           $0.lowercased().contains(".jp")
-////        || $0.lowercased().contains(".png")
-////        || $0.lowercased().contains(".bmp")
-////    }
-//
-//    let queue = DispatchQueue(label: "on.images")
-//    queue.async {
-//        filelist = filelist.filter{ NSImage(contentsOfFile: pathToSearch+"/"+$0) != nil } //filter out non-images
-//
-//        if filelist.count == 0 {
-//            print()
-//            print("No images found in directory \(String(describing: directoryURL))")
-//        }
-//        print("filelist.count=\(filelist.count)")
-//    }
-//    return filelist
-//}
