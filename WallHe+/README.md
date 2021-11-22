@@ -2,6 +2,7 @@
 
 **WallHe+** is a simple MacOS Swift application to automatically tile and display your wallpapers or any supported image file.
 Specify image folder and delay, Wallhe will randomly pick an image, resize/tile it to fit all visible desktops then loop through all images. 
+Inspired by Wally by Antonio Di Monaco
 
 # INSTALLATION
 
@@ -18,8 +19,11 @@ Uses depends SwiftImage as we had issues with PNG files.
 
 # FEATURES
 
-Runs as a menu bar applications.
-Makes it easy to pause, change settings or view log of images.
+Runs as a menu bar application.
+Makes it easy to pause or change settings.
+
+Updates all windows.
+Multi-monitor set-ups will see the new wallpaper on all visible desktops.
 
 Automatically tiles all images.
 No need to manually resize images to your screen size before using them as wallpaper.
@@ -27,5 +31,5 @@ No need to manually resize images to your screen size before using them as wallp
 Works with all image files supported by MacOS.
 Can have any number of mixed image files in directory.
 
-Log windows.
-Allows you to see which image was showed when (not currently exportable) 
+Log.
+Allows you to see which image was shown and when.
