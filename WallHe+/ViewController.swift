@@ -19,6 +19,7 @@ class ViewController: NSViewController {
     @IBOutlet var log: NSTextView!
     @IBOutlet var skipButton: NSButton!
     @IBOutlet var showInfoBox: NSButton!
+    @IBOutlet weak var doSubDirectories: NSButton!
     
     var showInfo : Bool = false
     var isRunning : Bool = false
@@ -26,6 +27,10 @@ class ViewController: NSViewController {
     var delay: Int = 0
     var path: String = ""
     var lePopOver = NSPopover()
+    
+    @IBAction func subdirectoryToggle(_ sender: Any) {
+        
+    }
     
     @IBAction func infoToggle(_ sender: NSButton) {
         setInfo()
@@ -68,7 +73,7 @@ class ViewController: NSViewController {
         if isRunning {
             stopButton.isEnabled = true
             skipButton.isEnabled = true
-            setUp(secondsDelay: delay, path: path)
+            setUp(secondsDelay: delay, path: path, subs: (doSubDirectories.state == .on ? true : false))
             okButton.isEnabled = false
             stopButton.title = "Stop"
             theWork.start()
@@ -146,7 +151,7 @@ class ViewController: NSViewController {
         errCounter = 0
         stopButton.isEnabled = true
         skipButton.isEnabled = true
-        setUp(secondsDelay: delay, path: path)
+        setUp(secondsDelay: delay, path: path,subs: (doSubDirectories.state == .on ? true : false))
     }
     
     @IBAction func exitApp(_ sender: Any) {

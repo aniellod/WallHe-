@@ -20,12 +20,12 @@ Uses depends SwiftImage as we had issues with PNG files.
 # FEATURES
 
 Runs as a menu bar application.
-Makes it easy to pause or change settings.
+Makes it easy to pick a new folder, pause/start wallpaper rotation or change delay settings.
 
 Updates all windows.
-Multi-monitor set-ups will see the new wallpaper on all visible desktops.
+Multi-monitor set-ups: updates wallpaper on all visible desktops.
 
-Automatically tiles all images.
+Automatically resizes and tiles images.
 No need to manually resize images to your screen size before using them as wallpaper.
 
 Works with all image files supported by MacOS.
@@ -33,3 +33,8 @@ Can have any number of mixed image files in directory.
 
 Log.
 Allows you to see which image was shown and when.
+
+
+# License
+
+WallHe+ is available under the MIT license. See the LICENSE file for more info.

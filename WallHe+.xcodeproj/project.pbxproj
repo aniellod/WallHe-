@@ -14,6 +14,7 @@
 		34689DDD273DDC4A004BB649 /* wallhe-main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34689DDC273DDC4A004BB649 /* wallhe-main.swift */; };
 		34689DE3273DDFCB004BB649 /* SwiftImage in Frameworks */ = {isa = PBXBuildFile; productRef = 34689DE2273DDFCB004BB649 /* SwiftImage */; };
 		34B7D836274BCF9000531503 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 34B7D835274BCF9000531503 /* README.md */; };
+		34B7D838274BFB5600531503 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 34B7D837274BFB5600531503 /* LICENSE */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		3482A7B52745C7290021EDF3 /* fr-CA */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "fr-CA"; path = "fr-CA.lproj/Main.strings"; sourceTree = "<group>"; };
 		3482A7B92745CEAC0021EDF3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
 		34B7D835274BCF9000531503 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		34B7D837274BFB5600531503 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,6 +47,8 @@
 		34689DC0273DB5B5004BB649 = {
 			isa = PBXGroup;
 			children = (
+				34B7D837274BFB5600531503 /* LICENSE */,
+				34B7D835274BCF9000531503 /* README.md */,
 				34689DCB273DB5B5004BB649 /* WallHe+ */,
 				34689DCA273DB5B5004BB649 /* Products */,
 			);
@@ -64,7 +68,6 @@
 				34689DDB273DD464004BB649 /* WallHe--Info.plist */,
 				34689DCC273DB5B5004BB649 /* AppDelegate.swift */,
 				34689DCE273DB5B5004BB649 /* ViewController.swift */,
-				34B7D835274BCF9000531503 /* README.md */,
 				34689DDC273DDC4A004BB649 /* wallhe-main.swift */,
 				34689DD0273DB5B7004BB649 /* Assets.xcassets */,
 				34689DD2273DB5B7004BB649 /* Main.storyboard */,
@@ -139,6 +142,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				34B7D836274BCF9000531503 /* README.md in Resources */,
+				34B7D838274BFB5600531503 /* LICENSE in Resources */,
 				34689DD1273DB5B7004BB649 /* Assets.xcassets in Resources */,
 				34689DD4273DB5B7004BB649 /* Main.storyboard in Resources */,
 			);
