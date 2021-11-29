@@ -879,8 +879,8 @@
                                                 <fragment>
                                                     <string key="content">1. Select folder with images.
 2. Select delay.
-3. Press Load to load images from selected folder. You can only load images when timer is stopped.
-4. Press Start/Stop to control slideshow.
+3. Press Load to load images from selected folder. Load images when timer is stopped.
+4. Press Start/Stop to start/stop slideshow.
 5. Press Skip to skip to next image.</string>
                                                     <attributes>
                                                         <color key="NSColor" name="textColor" catalog="System" colorSpace="catalog"/>

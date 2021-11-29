@@ -28,10 +28,6 @@ class ViewController: NSViewController {
     var path: String = ""
     var lePopOver = NSPopover()
     
-    @IBAction func subdirectoryToggle(_ sender: Any) {
-        
-    }
-    
     @IBAction func infoToggle(_ sender: NSButton) {
         setInfo()
     }
@@ -49,6 +45,7 @@ class ViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        //setup the log window so each line doesn't wrap around
         log.maxSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
         log.isHorizontallyResizable = true
         log.textContainer?.widthTracksTextView = false
@@ -88,7 +85,8 @@ class ViewController: NSViewController {
         let date = formatter.string(from: now)
       //  log.insertText(date , replacementRange: NSRange(location: 0, length: date.count))
         log.isEditable = true
-        log.insertText(date + " - " + fileName + "\n")
+        //log.insertText(date + " - " + fileName + "\n")
+        log.textStorage?.append(NSAttributedString(string: date + " - " + fileName + "\n"))
         log.isEditable = false
     }
     
@@ -99,6 +97,7 @@ class ViewController: NSViewController {
         mySettings.set(showInfo, forKey: "showinformation")
         mySettings.set(isRunning, forKey: "isRunning")
         mySettings.set(theWork.count, forKey: "count")
+        mySettings.set(doSubDirectories.state, forKey: "subdirs")
     }
     
     func loadDefaults() {
@@ -108,11 +107,12 @@ class ViewController: NSViewController {
         self.path = mySettings.object(forKey: "path") as? String ?? FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
         pathName.stringValue = self.path
         showInfo = mySettings.bool(forKey: "showinformation")
-        if showInfo == true { showInfoBox.state = .on } else { showInfoBox.state = .off }
+        showInfoBox.state = showInfo == true ? .on : .off
         setInfo()
         theWork.count = mySettings.object(forKey: "count") as? Int ?? 0
         isRunning = mySettings.bool(forKey: "isRunning")
         stopButton.title = "Start"
+        doSubDirectories.state = mySettings.object(forKey: "subdirs") as? NSButton.StateValue ?? .off
     }
     
     override var representedObject: Any? {
@@ -160,6 +160,11 @@ class ViewController: NSViewController {
     }
     
     @IBAction func stop(_ sender: Any) {
+        let type = sender is NSButton
+        var c: String = ""
+        if type == false {
+            c = sender as! String
+        }
         if isRunning {
             okButton.isEnabled = true
             stopButton.title = "Start"
@@ -172,6 +177,15 @@ class ViewController: NSViewController {
             skipButton.isEnabled = true
             theWork.start()
             isRunning = true
+        }
+
+        if c == "_Any_" {
+            okButton.isEnabled = true
+            stopButton.title = "Start"
+            stopButton.isEnabled = false
+            skipButton.isEnabled = false
+            theWork.stop()
+            isRunning = false
         }
         saveDefaults()
     }

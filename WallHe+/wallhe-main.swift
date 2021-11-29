@@ -168,10 +168,10 @@ func setBackground(theURL: String) {
     let theScreens = NSScreen.screens
     for x in theScreens {
         do {
-        try workspace.setDesktopImageURL(fixedURL!, for: x, options: options)
+            try workspace.setDesktopImageURL(fixedURL!, for: x, options: options)
         } catch {
-            print("Unable to update wallpaper!")
-            vc.addLogItem("[\(#function) \(#line): unable to update wallpaper!]")
+                print("\(#function) \(#line): Unable to update wallpaper!")
+                vc.addLogItem("[\(#function) \(#line): unable to update wallpaper!]")
         }
     }
 }
@@ -309,11 +309,12 @@ func updateWallpaper(path: String, name: String) {
     let desktopURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!
     let destinationURL: URL = desktopURL.appendingPathComponent(fileName())
     
-    let fullPath = path + name
+    //let fullPath = path + name
+    let fullPath = name
     let theURL = URL(fileURLWithPath: fullPath)
     let origImage = NSImage(contentsOf: theURL)
     guard let height = origImage?.size.height else {
-        print("Error in calculating height of image at \(fullPath)")
+        print("[\(#function) \(#line): Error in calculating height of image at \(fullPath)")
         DispatchQueue.main.async { vc.addLogItem("[\(#function) \(#line): unable to process image \(fullPath). Check path.]") }
         return
     }
@@ -322,7 +323,7 @@ func updateWallpaper(path: String, name: String) {
 
     guard let newImage = resizedImage(at: theURL, for: CGSize(width: newWidth, height: NSScreen.screenHeight!))
     else {
-        print("Error \(theURL) cannot be opened.")
+        print("[\(#function) \(#line): Error \(theURL) cannot be opened.")
         return
     }
 
@@ -357,76 +358,60 @@ func setUp(secondsDelay: Int, path: String, subs: Bool) {
 
 
 func buildFileList(_ pathToSearch: String) -> Array<String> {
-    let filemgr = FileManager.default
     var theFilelist: Array<String> = []
     
-    if theWork.subs == true {
-        theFilelist = getSubDirs(pathToSearch)
-    } else {
-        do {
-            theFilelist = try filemgr.contentsOfDirectory(atPath: pathToSearch)
-        } catch { print(error) }
-    }
+    theFilelist = getSubDirs(pathToSearch)
     
-    if theFilelist.count > 10000 { 
-        for _ in 1..<theFilelist.count-10000 {
-            theFilelist.remove(at: Int.random(in: 0..<theFilelist.count))
-        }
-       // theFilelist.removeSubrange(20000...(theFilelist.count - 1))
-    }
-    
-   // if #available(macOS 11.0, *) {
-   //     theFilelist = theFilelist.filter{ isImage(pathToSearch.slash()+$0) }
-   // } else {
-    let queue = DispatchQueue(label: "on.images")
-    queue.async {
-        theFilelist = theFilelist.filter{ NSImage(contentsOfFile: pathToSearch+"/"+$0) != nil } //filter out non-images
-        if theFilelist.count == 0 {
-            DispatchQueue.main.async {
-                vc.stop("_Any_")
-                theWork.stop()
-                if (errCounter == 0) {
-                theWork.errorMessage("Error: No images found in directory \(pathToSearch)")
-                 errCounter+=1
-                }
-            }
-            print()
-            print("No images found in directory \(pathToSearch))")
-        }
-        theFilelist.shuffle() //reshuffle just to be sure
-        theWork.fileList = theFilelist //update the number of images we actually have
-   // }
+    if theFilelist.count == 0 {
+        vc.stop("_Any_")
+        theWork.stop()
+        theWork.errorMessage("[\(#function) \(#line): Error: No images found in directory \(pathToSearch)")
     }
     return theFilelist
 }
 
 func getSubDirs(_ pathToSearch: String) -> Array<String> { // Specify the root of the directory tree to be traversed.
     let filemgr = FileManager.default
-    var subFolders: Array<String>?
-    do {
-        subFolders = try filemgr.subpathsOfDirectory(atPath: pathToSearch)
-    } catch { print(error) }
+    var count = 0
+    let randNo = Int.random(in: 20..<100)
+    
+    let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey])
+    let options: FileManager.DirectoryEnumerationOptions = theWork.subs == true
+                    ? [.skipsHiddenFiles]
+                    : [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
+    let enumerator = filemgr.enumerator(at: URL(fileURLWithPath: pathToSearch), includingPropertiesForKeys: Array(resourceKeys), options: options)!
+    var subFolders: Array<String>! = []
+    
+    for case let name as URL in enumerator {
+        do {
+            let properties = try name.resourceValues(forKeys: resourceKeys)
+            if properties.isDirectory! { continue }
+        } catch { print(error) }
+        subFolders.append(name.path)
+        if count==randNo { break }
+        count+=1
+    }
+    count = 0
+
+    let queue = DispatchQueue(label: "on.images")
+    queue.async {
+        lazy var theFilelist = enumerator.allObjects
+        if theFilelist.count > 10000 {  // grab 10000 random images
+            for _ in 1..<theFilelist.count-10000 {
+                theFilelist.remove(at: Int.random(in: 0..<theFilelist.count))
+            }
+        }
+        for name in theFilelist {
+            let theName = (name as! URL).path
+            var isDir : ObjCBool = false
+            let x = FileManager.default
+            if x.fileExists(atPath: theName, isDirectory:&isDir) {
+            if !isDir.boolValue && NSImage(contentsOfFile: theName) != nil  {
+                subFolders.append(theName)
+            } else { print("Is not an image: \(theName)") }
+            }
+        }
+        theWork.fileList = subFolders.shuffled()
+    }
     return subFolders ?? ["/"]
 }
-
-//@available(macOS 11.0, *)
-//func isImage (_ path: String) -> Bool {
-//  //  for fileURL in theFilelist {
-//  //      let newFileURL = pathToSearch.slash() + fileURL
-//    let requiredAttributes = [URLResourceKey.nameKey, URLResourceKey.creationDateKey, URLResourceKey.contentTypeKey] //, URLResourceKey.contentModificationDateKey, //URLResourceKey.fileSizeKey, URLResourceKey.isPackageKey, URLResourceKey.thumbnailKey, //URLResourceKey.customIconKey]
-//    let pathURL = URL(fileURLWithPath: path)
-//        do {
-//            let properties = try (pathURL as NSURL).resourceValues(forKeys: requiredAttributes)
-//            //print(properties[URLResourceKey.creationDateKey]!)
-//            let o: UTType = (properties[URLResourceKey.contentTypeKey]! as? UTType)!
-//            let k = o.identifier
-//            if (k != nil) {
-//            if        k.contains("jpeg")
-//                        || k.contains("png")
-//                        || k.contains("pdf")
-//                        || k.contains("bmp") {
-//                return true }}
-//        } catch { print(error) }
-//    return false
-//}
-
