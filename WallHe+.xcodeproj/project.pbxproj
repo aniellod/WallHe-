@@ -30,7 +30,6 @@
 		3482A7B92745CEAC0021EDF3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
 		34B7D835274BCF9000531503 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		34B7D837274BFB5600531503 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
-		34D5A86C2753304C00C07733 /* TestPlan.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = TestPlan.xctestplan; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -48,7 +47,6 @@
 		34689DC0273DB5B5004BB649 = {
 			isa = PBXGroup;
 			children = (
-				34D5A86C2753304C00C07733 /* TestPlan.xctestplan */,
 				34B7D837274BFB5600531503 /* LICENSE */,
 				34B7D835274BCF9000531503 /* README.md */,
 				34689DCB273DB5B5004BB649 /* WallHe+ */,
