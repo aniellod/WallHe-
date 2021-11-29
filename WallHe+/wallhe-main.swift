@@ -9,7 +9,7 @@
 //  Parts were converted to Swift 5.5 from Objective-C by Swiftify v5.5.22755 - https://swiftify.com/
 //  Inspired by Wally by Antonio Di Monaco
 //
-//  Warning - very buggy and little error checking. Lots of cargo culting...
+//  Warning - very buggy and little error checking. Unapologetic cargo culting...
 //
 //
 //  Requirements:
@@ -28,6 +28,7 @@ import Foundation
 import SwiftUI
 import CoreGraphics
 import SwiftImage // https://github.com/koher/swift-image.git
+import UniformTypeIdentifiers
 
 extension String {
     func slash() -> String {
@@ -48,6 +49,7 @@ class thread2 {
     var currentFullPath: String
     var count: Int
     var showInfo: Bool
+    var subEnabled: Bool
     var thread: Thread
     
     init() {
@@ -57,7 +59,13 @@ class thread2 {
         self.currentFullPath = ""
         self.count = 0
         self.showInfo = false
+        self.subEnabled = false
         self.thread = Thread()
+    }
+    
+    var subs: Bool {
+        get { return subEnabled }
+        set { subEnabled = newValue }
     }
     
     var fileList: Array<String> {
@@ -122,16 +130,15 @@ class thread2 {
         var countFlag = false
 
         for i in count..<filelist.count {
-            let imageFile = filelist[i]
-            self.currentImageFile = imageFile
+            self.currentImageFile = filelist[i]
             self.currentFullPath = directory.slash()
             self.count+=1
             let countString = String(self.count) + "/" + String(filelist.count) + " - "
-            DispatchQueue.main.async {
-                vc.addLogItem(countString + imageFile)
+            DispatchQueue.main.async { // add to the log window
+                vc.addLogItem(countString + self.filelist[i])
             }
-            autoreleasepool {
-                updateWallpaper(path: self.currentFullPath, name: imageFile)
+            autoreleasepool { // needed to avoid memory leaks.
+                updateWallpaper(path: self.currentFullPath, name: filelist[i])
             }
             for _ in 1..<seconds { // checks for cancellation every second
                 sleep(1)
@@ -161,8 +168,11 @@ func setBackground(theURL: String) {
     let theScreens = NSScreen.screens
     for x in theScreens {
         do {
-        try workspace.setDesktopImageURL(fixedURL!, for: x, options: options)
-        } catch {print("Unable to update wallpaper!")}
+            try workspace.setDesktopImageURL(fixedURL!, for: x, options: options)
+        } catch {
+                print("\(#function) \(#line): Unable to update wallpaper!")
+                vc.addLogItem("[\(#function) \(#line): unable to update wallpaper!]")
+        }
     }
 }
 
@@ -299,11 +309,13 @@ func updateWallpaper(path: String, name: String) {
     let desktopURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!
     let destinationURL: URL = desktopURL.appendingPathComponent(fileName())
     
-    let fullPath = path + name
+    //let fullPath = path + name
+    let fullPath = name
     let theURL = URL(fileURLWithPath: fullPath)
     let origImage = NSImage(contentsOf: theURL)
     guard let height = origImage?.size.height else {
-        print("Error in calculating height of image at \(path)\(name)")
+        print("[\(#function) \(#line): Error in calculating height of image at \(fullPath)")
+        DispatchQueue.main.async { vc.addLogItem("[\(#function) \(#line): unable to process image \(fullPath). Check path.]") }
         return
     }
     let ratio = NSScreen.screenHeight! / height
@@ -311,7 +323,7 @@ func updateWallpaper(path: String, name: String) {
 
     guard let newImage = resizedImage(at: theURL, for: CGSize(width: newWidth, height: NSScreen.screenHeight!))
     else {
-        print("Error \(theURL) cannot be opened.")
+        print("[\(#function) \(#line): Error \(theURL) cannot be opened.")
         return
     }
 
@@ -319,60 +331,87 @@ func updateWallpaper(path: String, name: String) {
     
     guard finalImage.pngWrite(to: destinationURL) else {
         print("File count not be saved")
+        DispatchQueue.main.async {  vc.addLogItem("[\(#function) \(#line): unable to save wallpaper]") }
         return
     }
     setBackground(theURL: (destinationURL.absoluteString))
 }
 
-func setUp(secondsDelay: Int, path: String) {
+func setUp(secondsDelay: Int, path: String, subs: Bool) {
     let filemgr = FileManager.default
     var dirName = ""
-    var filelist: Array<String> = []
-
+    theWork.subs = subs
+   
     if !filemgr.fileExists(atPath: path) { //if directory can't be found (removed?) default to User/.../Images/
         dirName = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
     } else {
         dirName = path
     }
-    
-    filelist = buildFileList(dirName)
-    
-    if filelist.count == 0 {
-        return
-    }
-    
+      
     let seconds: UInt32 = UInt32(abs(Int(exactly: secondsDelay)!))
     
-    theWork.fileList = filelist
+//    theWork.fileList = filelist
     theWork.delay = seconds
-    theWork.directory = path
+    theWork.directory = dirName
     theWork.load()
 }
 
+
 func buildFileList(_ pathToSearch: String) -> Array<String> {
-    let filemgr = FileManager.default
     var theFilelist: Array<String> = []
     
-    do {
-        theFilelist = try filemgr.contentsOfDirectory(atPath: pathToSearch)
-    } catch { print(error) }
-        
-    let queue = DispatchQueue(label: "on.images")
-    queue.async {
-        theFilelist = theFilelist.filter{ NSImage(contentsOfFile: pathToSearch+"/"+$0) != nil } //filter out non-images
-        if theFilelist.count == 0 {
-            DispatchQueue.main.async {
-                vc.stop("_Any_")
-                theWork.stop()
-                if (errCounter == 0) {
-                theWork.errorMessage("Error: No images found in directory \(pathToSearch)")
-                 errCounter+=1
-                }
-            }
-            print()
-            print("No images found in directory \(pathToSearch))")
-        }
-        theWork.fileList = theFilelist //update the number of images we actually have
+    theFilelist = getSubDirs(pathToSearch)
+    
+    if theFilelist.count == 0 {
+        vc.stop("_Any_")
+        theWork.stop()
+        theWork.errorMessage("[\(#function) \(#line): Error: No images found in directory \(pathToSearch)")
     }
     return theFilelist
+}
+
+func getSubDirs(_ pathToSearch: String) -> Array<String> { // Specify the root of the directory tree to be traversed.
+    let filemgr = FileManager.default
+    var count = 0
+    let randNo = Int.random(in: 20..<100)
+    
+    let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey])
+    let options: FileManager.DirectoryEnumerationOptions = theWork.subs == true
+                    ? [.skipsHiddenFiles]
+                    : [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
+    let enumerator = filemgr.enumerator(at: URL(fileURLWithPath: pathToSearch), includingPropertiesForKeys: Array(resourceKeys), options: options)!
+    var subFolders: Array<String>! = []
+    
+    for case let name as URL in enumerator {
+        do {
+            let properties = try name.resourceValues(forKeys: resourceKeys)
+            if properties.isDirectory! { continue }
+        } catch { print(error) }
+        subFolders.append(name.path)
+        if count==randNo { break }
+        count+=1
+    }
+    count = 0
+
+    let queue = DispatchQueue(label: "on.images")
+    queue.async {
+        lazy var theFilelist = enumerator.allObjects
+        if theFilelist.count > 10000 {  // grab 10000 random images
+            for _ in 1..<theFilelist.count-10000 {
+                theFilelist.remove(at: Int.random(in: 0..<theFilelist.count))
+            }
+        }
+        for name in theFilelist {
+            let theName = (name as! URL).path
+            var isDir : ObjCBool = false
+            let x = FileManager.default
+            if x.fileExists(atPath: theName, isDirectory:&isDir) {
+            if !isDir.boolValue && NSImage(contentsOfFile: theName) != nil  {
+                subFolders.append(theName)
+            } else { print("Is not an image: \(theName)") }
+            }
+        }
+        theWork.fileList = subFolders.shuffled()
+    }
+    return subFolders ?? ["/"]
 }
