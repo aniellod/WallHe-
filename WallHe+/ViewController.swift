@@ -11,8 +11,9 @@
 import Cocoa
 import SwiftUI
 
+
 class ViewController: NSViewController {
-    @IBOutlet weak var pathName: NSTextField!
+    //@IBOutlet weak var pathName: NSTextField!
     @IBOutlet weak var delaySelect: NSPopUpButton!
     @IBOutlet var okButton: NSButtonCell!
     @IBOutlet var stopButton: NSButton!
@@ -20,14 +21,17 @@ class ViewController: NSViewController {
     @IBOutlet var skipButton: NSButton!
     @IBOutlet var showInfoBox: NSButton!
     @IBOutlet weak var doSubDirectories: NSButton!
+    @IBOutlet weak var progress: NSProgressIndicator!
+    @IBOutlet weak var loadingText: NSTextField!
     
     var showInfo : Bool = false
     var isRunning : Bool = false
     var menuSelect : Int = 2
     var delay: Int = 0
-    var path: String = ""
+    var path: [String] = []
     var lePopOver = NSPopover()
-    
+    var data: NSMutableArray = NSMutableArray()
+
     @IBAction func infoToggle(_ sender: NSButton) {
         setInfo()
     }
@@ -40,7 +44,8 @@ class ViewController: NSViewController {
             showInfo = true
             theWork.showInfo = true
         }
-        updateWallpaper(path: theWork.directory, name: theWork.imageFile)
+        updateWallpaper(name: theWork.imageFile)
+     //   updateWallpaper(path: theWork.directory, name: theWork.imageFile)
     }
     
     override func viewDidLoad() {
@@ -50,11 +55,12 @@ class ViewController: NSViewController {
         log.isHorizontallyResizable = true
         log.textContainer?.widthTracksTextView = false
         log.textContainer?.containerSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
-        pathName.stringValue = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
-        path = pathName.stringValue
+        //pathName.stringValue = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
+        //path.append(pathName.stringValue + "\n")
         stopButton.isEnabled = false
         okButton.isEnabled = true
         delaySelect.removeAllItems()
+        progress.isHidden = true
         delaySelect.addItems(withTitles:
                                 ["Every 5 seconds",
                                  "Every minute",
@@ -70,7 +76,7 @@ class ViewController: NSViewController {
         if isRunning {
             stopButton.isEnabled = true
             skipButton.isEnabled = true
-            setUp(secondsDelay: delay, path: path, subs: (doSubDirectories.state == .on ? true : false))
+            setUp(secondsDelay: delay, paths: path, subs: (doSubDirectories.state == .on ? true : false))
             okButton.isEnabled = false
             stopButton.title = "Stop"
             theWork.start()
@@ -104,8 +110,8 @@ class ViewController: NSViewController {
         let mySettings = UserDefaults.standard
         menuSelect = mySettings.object(forKey: "menuSelect") as? Int ?? 2
         delaySelect.select(delaySelect.menu?.item(at: menuSelect))
-        self.path = mySettings.object(forKey: "path") as? String ?? FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
-        pathName.stringValue = self.path
+        self.path = mySettings.object(forKey: "path") as? [String] ?? [FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path]
+        displaySelectedFolders()
         showInfo = mySettings.bool(forKey: "showinformation")
         showInfoBox.state = showInfo == true ? .on : .off
         setInfo()
@@ -115,6 +121,14 @@ class ViewController: NSViewController {
         doSubDirectories.state = mySettings.object(forKey: "subdirs") as? NSButton.StateValue ?? .off
     }
     
+    func displaySelectedFolders() {
+        var folder: String = ""
+        for path in self.path {
+            folder = folder + "\n" + path
+        }
+        addLogItem(folder)
+    }
+    
     override var representedObject: Any? {
         didSet {
         // Update the view, if already loaded.
@@ -122,39 +136,45 @@ class ViewController: NSViewController {
         }
     }
 
-    func getFileName() -> String? {
+    func getFileName() -> [String] {
         let dialog = NSOpenPanel();
         dialog.title                   = "Choose folder";
         dialog.showsResizeIndicator    = true;
         dialog.showsHiddenFiles        = false;
-        dialog.allowsMultipleSelection = false;
+        dialog.allowsMultipleSelection = true;
         dialog.canChooseDirectories = true
         dialog.canChooseFiles = false
         
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
-            let result = dialog.url // Pathname of the file
-            if (result != nil) {
-                let selectedPath: String = result!.path
-                self.pathName.stringValue = selectedPath // show path in user interface
+            let result = dialog.urls // Pathname of the file
+            print("Result = \(result)")
+            var selectedPath: Array<String> = []
+            if (result.count != 0) {
+                for path in result {
+                    selectedPath.append(path.path)
+                }
                 return selectedPath
             }
         }
             // User clicked on "Cancel"
-            return nil
+            return []
     }
 
     @IBAction func selectPath(_ sender: Any) {
-            path = self.getFileName() ?? FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
+        path = self.getFileName() // ?? FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
     }
     
     @IBAction func Ok(_ sender: Any) {  //load button
         errCounter = 0
         stopButton.isEnabled = true
         skipButton.isEnabled = true
-        setUp(secondsDelay: delay, path: path,subs: (doSubDirectories.state == .on ? true : false))
+        displaySelectedFolders()
+     //   setUp(secondsDelay: delay, path: path,subs: (doSubDirectories.state == .on ? true : false))
+        setUp(secondsDelay: delay, paths: path,subs: (doSubDirectories.state == .on ? true : false))
     }
     
     @IBAction func exitApp(_ sender: Any) {
+        stopAnimation()
         saveDefaults()
         exit(0)
     }
@@ -221,6 +241,18 @@ class ViewController: NSViewController {
     
     @IBAction func nextImage(_ sender: NSButton) {
         theWork.skip()
+    }
+    
+    func startAnimation() {
+        progress.isHidden = false
+        loadingText.isHidden = false
+        progress.startAnimation(nil)
+    }
+    
+    func stopAnimation() {
+        progress.stopAnimation(nil)
+        progress.isHidden = true
+        loadingText.isHidden = true
     }
 }
 
