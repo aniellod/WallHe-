@@ -32,12 +32,20 @@ import UniformTypeIdentifiers
 
 extension String {
     func slash() -> String {
-        if self.last != "/"
-        { return self + "/"
-        }
-        return self
+//        if self.last != "/"
+//        { return self + "/"
+//        }
+//        return self
+        return self.last != "/" ? self + "/" : self
+    }
+
+    static func ~= (lhs: String, rhs: String) -> Bool {
+        guard let regex = try? NSRegularExpression(pattern: rhs) else { return false }
+        let range = NSRange(location: 0, length: lhs.utf16.count)
+        return regex.firstMatch(in: lhs, options: [], range: range) != nil
     }
 }
+
 
 let theWork = thread2()
 var errCounter: Int = 0
@@ -305,6 +313,7 @@ func resizedImage(at url: URL, for size: CGSize) -> NSImage? {
 
 // updateWallpaper: input path to image and check the image, resize, tile, and update the wallpaper.
 func updateWallpaper(name: String) {
+    if name.isEmpty { return } // exit if no name was provided
     let desktopURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!
     let destinationURL: URL = desktopURL.appendingPathComponent(fileName())
     
@@ -338,7 +347,6 @@ func updateWallpaper(name: String) {
 func setUp(secondsDelay: Int, paths: [String], subs: Bool) {
     theWork.subs = subs
     let seconds: UInt32 = UInt32(abs(Int(exactly: secondsDelay)!))
-    
     theWork.delay = seconds
     theWork.directory = paths
     theWork.load()
@@ -346,7 +354,6 @@ func setUp(secondsDelay: Int, paths: [String], subs: Bool) {
 
 func buildFileList(_ pathsToSearch: [String]) -> Array<String> {
     var theFilelist: Array<String> = []
-    
     theFilelist = getSubDirs(pathsToSearch)
     
     if theFilelist.count == 0 {
@@ -361,24 +368,25 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
     let filemgr = FileManager.default
     var count = 0
     let randNo = Int.random(in: 20..<100)
-    
     var subFolders: Array<String>! = []
     
-    let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey, .labelNumberKey])
+    let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey, .localizedLabelKey, .tagNamesKey])
     let options: FileManager.DirectoryEnumerationOptions = theWork.subs == true
                     ? [.skipsHiddenFiles]
                     : [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
     var enumerator = FileManager.DirectoryEnumerator()
     
-    for pathToSearch in pathsToSearch {
+    for pathToSearch in pathsToSearch {  // obtain a small sample of images to begin the rotation.
         enumerator = filemgr.enumerator(at: URL(fileURLWithPath: pathToSearch), includingPropertiesForKeys: Array(resourceKeys), options: options)!
         for case let name as URL in enumerator {
             do {
                 let properties = try name.resourceValues(forKeys: resourceKeys)
-                if properties.isDirectory! { continue } // skip directories
+                if properties.isDirectory! ||
+                    (properties.tagNames?.description.lowercased().contains("private")) ??
+                    false { continue } // skip directories
             } catch { print(error) }
             subFolders.append(name.path)
-            if count==randNo { break }  //pick a few files so we don't have to wait for all filenames to load
+            if count==randNo { break }  //exit the loop at a random point
             count+=1
         }
     }
@@ -392,8 +400,12 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
             enumerator = filemgr.enumerator(at: URL(fileURLWithPath: pathToSearch), includingPropertiesForKeys: Array(resourceKeys), options: options)!
             DispatchQueue.main.async {  vc.startAnimation() }
             for case let name as URL in enumerator {
+                do {
+                    let properties = try name.resourceValues(forKeys: resourceKeys)
+                    if ((properties.tagNames?.description.lowercased().contains("private")) ?? false ) {
+                        continue } // skip this image
+                } catch { print(error) }
                 theFilelist.append(name.path)
-                
             }
         }
         
@@ -403,7 +415,7 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
             }
         }
         
-        for (index, name) in theFilelist.enumerated() {
+        for (index, name) in theFilelist.enumerated() { // check to remove non-image files
             var isDir : ObjCBool = false
             let x = FileManager.default
             if x.fileExists(atPath: name, isDirectory:&isDir) {

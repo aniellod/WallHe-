@@ -874,15 +874,29 @@
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
                                         <textView editable="NO" selectable="NO" importsGraphics="NO" richText="NO" verticallyResizable="YES" spellingCorrection="YES" smartInsertDelete="YES" id="lt6-hF-Qap">
-                                            <rect key="frame" x="0.0" y="0.0" width="350" height="124"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="350" height="126"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                             <color key="backgroundColor" name="windowBackgroundColor" catalog="System" colorSpace="catalog"/>
                                             <size key="minSize" width="350" height="124"/>
                                             <size key="maxSize" width="395" height="10000000"/>
                                             <attributedString key="textStorage">
+                                                <fragment content="1. Select folder(s) with images (hold ">
+                                                    <attributes>
+                                                        <color key="NSColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                        <font key="NSFont" size="15" name="Helvetica"/>
+                                                        <paragraphStyle key="NSParagraphStyle" alignment="natural" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                                    </attributes>
+                                                </fragment>
+                                                <fragment content="⌘ to select more).">
+                                                    <attributes>
+                                                        <color key="NSColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                                                        <font key="NSFont" size="15" name="LucidaGrande"/>
+                                                        <paragraphStyle key="NSParagraphStyle" alignment="natural" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                                    </attributes>
+                                                </fragment>
                                                 <fragment>
-                                                    <string key="content">1. Select folder with images.
+                                                    <string key="content">
 2. Select delay.
 3. Press Load to load images from selected folder. Load images when timer is stopped.
 4. Press Start/Stop to start/stop slideshow.

@@ -13,7 +13,6 @@ import SwiftUI
 
 
 class ViewController: NSViewController {
-    //@IBOutlet weak var pathName: NSTextField!
     @IBOutlet weak var delaySelect: NSPopUpButton!
     @IBOutlet var okButton: NSButtonCell!
     @IBOutlet var stopButton: NSButton!
@@ -55,8 +54,6 @@ class ViewController: NSViewController {
         log.isHorizontallyResizable = true
         log.textContainer?.widthTracksTextView = false
         log.textContainer?.containerSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
-        //pathName.stringValue = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
-        //path.append(pathName.stringValue + "\n")
         stopButton.isEnabled = false
         okButton.isEnabled = true
         delaySelect.removeAllItems()
@@ -71,7 +68,6 @@ class ViewController: NSViewController {
                                  "Every day"
                                 ])
         loadDefaults()
-
         self.delay = getSeconds(selection: menuSelect)
         if isRunning {
             stopButton.isEnabled = true
@@ -89,9 +85,7 @@ class ViewController: NSViewController {
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         let date = formatter.string(from: now)
-      //  log.insertText(date , replacementRange: NSRange(location: 0, length: date.count))
         log.isEditable = true
-        //log.insertText(date + " - " + fileName + "\n")
         log.textStorage?.append(NSAttributedString(string: date + " - " + fileName + "\n"))
         log.isEditable = false
     }
@@ -169,7 +163,6 @@ class ViewController: NSViewController {
         stopButton.isEnabled = true
         skipButton.isEnabled = true
         displaySelectedFolders()
-     //   setUp(secondsDelay: delay, path: path,subs: (doSubDirectories.state == .on ? true : false))
         setUp(secondsDelay: delay, paths: path,subs: (doSubDirectories.state == .on ? true : false))
     }
     
@@ -181,10 +174,11 @@ class ViewController: NSViewController {
     
     @IBAction func stop(_ sender: Any) {
         let type = sender is NSButton
-        var c: String = ""
-        if type == false {
-            c = sender as! String
+        var typeCheck: String = ""
+        if type == false { //if the call is not from a button, it is a string.
+            typeCheck = sender as! String
         }
+
         if isRunning {
             okButton.isEnabled = true
             stopButton.title = "Start"
@@ -199,7 +193,7 @@ class ViewController: NSViewController {
             isRunning = true
         }
 
-        if c == "_Any_" {
+        if typeCheck == "_Any_" {
             okButton.isEnabled = true
             stopButton.title = "Start"
             stopButton.isEnabled = false
