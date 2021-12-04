@@ -59,6 +59,8 @@ class thread2 {
     var showInfo: Bool
     var subEnabled: Bool
     var thread: Thread
+    var currentSelection: Int
+    var pressedStop: Bool
     
     init() {
         self.seconds = 0
@@ -69,6 +71,8 @@ class thread2 {
         self.showInfo = false
         self.subEnabled = false
         self.thread = Thread()
+        self.currentSelection = 0
+        self.pressedStop = false
     }
     
     var subs: Bool {
@@ -136,7 +140,7 @@ class thread2 {
     @objc func mainLoop() {
         let initCount = filelist.count
         var countFlag = false
-
+        
         for i in count..<filelist.count {
             self.currentImageFile = filelist[i]
             self.count+=1
@@ -146,6 +150,7 @@ class thread2 {
             }
             autoreleasepool { // needed to avoid memory leaks.
                 updateWallpaper(name: filelist[i])
+                currentSelection = i
             }
             for _ in 1..<seconds { // checks for cancellation every second
                 sleep(1)
@@ -394,23 +399,41 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
     count = 0
     var theFilelist: [String] = []
     let queue = DispatchQueue(label: "on.paths.")
+    var tokens: [Substring] = []
+    tokens = vc.tokenField(vc.filterToken) ?? [""]
     
     queue.async {
         for pathToSearch in pathsToSearch {  // Build array with all file paths so we can pick some random ones out of the list
             enumerator = filemgr.enumerator(at: URL(fileURLWithPath: pathToSearch), includingPropertiesForKeys: Array(resourceKeys), options: options)!
             DispatchQueue.main.async {  vc.startAnimation() }
             for case let name as URL in enumerator {
+                if (theWork.pressedStop) { break }
                 do {
                     let properties = try name.resourceValues(forKeys: resourceKeys)
                     if ((properties.tagNames?.description.lowercased().contains("private")) ?? false ) {
                         continue } // skip this image
                 } catch { print(error) }
                 theFilelist.append(name.path)
+                
             }
         }
         
+        print(theFilelist.count)
+        let badExtensions = [".mp4", ".log", ".csv", ".mov", ".avi"]
+        for badone in badExtensions {
+            theFilelist = theFilelist.filter{ !($0.lowercased().contains(badone.lowercased())) }
+        }
+        
+
+        for filter in tokens {
+            print("filtering \(filter)")
+            theFilelist = theFilelist.filter{ !($0.lowercased()).contains(filter.lowercased()) }
+        }
+        print(theFilelist.count)
+        
         if theFilelist.count > 10000 {  // grab 10000 random images
             for _ in 1..<theFilelist.count-10000 {
+                if (theWork.pressedStop) { break }
                 theFilelist.remove(at: Int.random(in: 0..<theFilelist.count))
             }
         }
@@ -423,7 +446,8 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
                     subFolders.append(name)
                 } else { print("Is not an image: \(name)") }
             }
-            if index % 100 == 0 { theWork.fileList = subFolders.shuffled() }
+            if index % 500 == 0 { theWork.fileList = subFolders.shuffled() }
+            if (theWork.pressedStop) { break }
         }
         theWork.fileList = subFolders.shuffled()
         DispatchQueue.main.async { vc.stopAnimation() }

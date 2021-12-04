@@ -22,6 +22,7 @@ class ViewController: NSViewController {
     @IBOutlet weak var doSubDirectories: NSButton!
     @IBOutlet weak var progress: NSProgressIndicator!
     @IBOutlet weak var loadingText: NSTextField!
+    @IBOutlet weak var filterToken: NSTokenField!
     
     var showInfo : Bool = false
     var isRunning : Bool = false
@@ -33,6 +34,12 @@ class ViewController: NSViewController {
 
     @IBAction func infoToggle(_ sender: NSButton) {
         setInfo()
+    }
+
+    func tokenField(_ tokenFieldArg: NSTokenField) -> [Substring]? {
+        let valueNames: String = String(tokenFieldArg.stringValue as String)
+        let valueArray = valueNames.split(separator: ",")
+        return valueArray
     }
     
     func setInfo() {
@@ -98,6 +105,7 @@ class ViewController: NSViewController {
         mySettings.set(isRunning, forKey: "isRunning")
         mySettings.set(theWork.count, forKey: "count")
         mySettings.set(doSubDirectories.state, forKey: "subdirs")
+     //   mySettings.set(filterToken, forKey: "filter")
     }
     
     func loadDefaults() {
@@ -113,6 +121,7 @@ class ViewController: NSViewController {
         isRunning = mySettings.bool(forKey: "isRunning")
         stopButton.title = "Start"
         doSubDirectories.state = mySettings.object(forKey: "subdirs") as? NSButton.StateValue ?? .off
+      //  filterToken = mySettings.object(forKey: "filter") as? NSTokenField ?? NSTokenField()
     }
     
     func displaySelectedFolders() {
@@ -158,7 +167,23 @@ class ViewController: NSViewController {
         path = self.getFileName() // ?? FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
     }
     
+    @IBAction func showInFinder(_ sender: Any) {
+        if theWork.filelist.count > 0 {
+        let url = URL(fileURLWithPath: theWork.filelist[theWork.currentSelection])
+        do {
+            if try url.checkResourceIsReachable() {
+                NSWorkspace.shared.activateFileViewerSelecting([url])
+                return
+            }
+        } catch { return }
+        }
+    }
+    
+    
     @IBAction func Ok(_ sender: Any) {  //load button
+        for value in tokenField(filterToken) ?? [""] {
+            print(value)
+        }
         errCounter = 0
         stopButton.isEnabled = true
         skipButton.isEnabled = true
@@ -184,12 +209,14 @@ class ViewController: NSViewController {
             stopButton.title = "Start"
             skipButton.isEnabled = false
             theWork.stop()
+            theWork.pressedStop = true
             isRunning = false
         } else {
             okButton.isEnabled = false
             stopButton.title = "Stop"
             skipButton.isEnabled = true
             theWork.start()
+            theWork.pressedStop = false
             isRunning = true
         }
 
