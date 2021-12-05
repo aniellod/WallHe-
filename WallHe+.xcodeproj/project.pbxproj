@@ -13,6 +13,7 @@
 		34689DD4273DB5B7004BB649 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 34689DD2273DB5B7004BB649 /* Main.storyboard */; };
 		34689DDD273DDC4A004BB649 /* wallhe-main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34689DDC273DDC4A004BB649 /* wallhe-main.swift */; };
 		34689DE3273DDFCB004BB649 /* SwiftImage in Frameworks */ = {isa = PBXBuildFile; productRef = 34689DE2273DDFCB004BB649 /* SwiftImage */; };
+		34B50D24275D6D01007BEBD9 /* AdvancedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34B50D23275D6D01007BEBD9 /* AdvancedViewController.swift */; };
 		34B7D836274BCF9000531503 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 34B7D835274BCF9000531503 /* README.md */; };
 		34B7D838274BFB5600531503 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 34B7D837274BFB5600531503 /* LICENSE */; };
 /* End PBXBuildFile section */
@@ -28,6 +29,7 @@
 		34689DDC273DDC4A004BB649 /* wallhe-main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "wallhe-main.swift"; sourceTree = "<group>"; };
 		3482A7B52745C7290021EDF3 /* fr-CA */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "fr-CA"; path = "fr-CA.lproj/Main.strings"; sourceTree = "<group>"; };
 		3482A7B92745CEAC0021EDF3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
+		34B50D23275D6D01007BEBD9 /* AdvancedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedViewController.swift; sourceTree = "<group>"; };
 		34B7D835274BCF9000531503 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		34B7D837274BFB5600531503 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -69,6 +71,7 @@
 				34689DCC273DB5B5004BB649 /* AppDelegate.swift */,
 				34689DCE273DB5B5004BB649 /* ViewController.swift */,
 				34689DDC273DDC4A004BB649 /* wallhe-main.swift */,
+				34B50D23275D6D01007BEBD9 /* AdvancedViewController.swift */,
 				34689DD0273DB5B7004BB649 /* Assets.xcassets */,
 				34689DD2273DB5B7004BB649 /* Main.storyboard */,
 				34689DD5273DB5B7004BB649 /* WallHe_.entitlements */,
@@ -158,6 +161,7 @@
 				34689DCF273DB5B5004BB649 /* ViewController.swift in Sources */,
 				34689DDD273DDC4A004BB649 /* wallhe-main.swift in Sources */,
 				34689DCD273DB5B5004BB649 /* AppDelegate.swift in Sources */,
+				34B50D24275D6D01007BEBD9 /* AdvancedViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

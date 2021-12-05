@@ -11,7 +11,6 @@
 import Cocoa
 import SwiftUI
 
-
 class ViewController: NSViewController {
     @IBOutlet weak var delaySelect: NSPopUpButton!
     @IBOutlet var okButton: NSButtonCell!
@@ -51,7 +50,6 @@ class ViewController: NSViewController {
             theWork.showInfo = true
         }
         updateWallpaper(name: theWork.imageFile)
-     //   updateWallpaper(path: theWork.directory, name: theWork.imageFile)
     }
     
     override func viewDidLoad() {
@@ -61,6 +59,8 @@ class ViewController: NSViewController {
         log.isHorizontallyResizable = true
         log.textContainer?.widthTracksTextView = false
         log.textContainer?.containerSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
+        
+
         stopButton.isEnabled = false
         okButton.isEnabled = true
         delaySelect.removeAllItems()
@@ -85,7 +85,7 @@ class ViewController: NSViewController {
             theWork.start()
         }
     }
-
+    
     func addLogItem(_ fileName: String) {
         let formatter = DateFormatter()
         let now = Date()
@@ -94,6 +94,7 @@ class ViewController: NSViewController {
         let date = formatter.string(from: now)
         log.isEditable = true
         log.textStorage?.append(NSAttributedString(string: date + " - " + fileName + "\n"))
+        avc.logValue = NSAttributedString(string: date + " - " + fileName + "\n")
         log.isEditable = false
     }
     
@@ -105,7 +106,7 @@ class ViewController: NSViewController {
         mySettings.set(isRunning, forKey: "isRunning")
         mySettings.set(theWork.count, forKey: "count")
         mySettings.set(doSubDirectories.state, forKey: "subdirs")
-     //   mySettings.set(filterToken, forKey: "filter")
+        mySettings.set(tokenField(filterToken), forKey: "filter")
     }
     
     func loadDefaults() {
@@ -121,7 +122,8 @@ class ViewController: NSViewController {
         isRunning = mySettings.bool(forKey: "isRunning")
         stopButton.title = "Start"
         doSubDirectories.state = mySettings.object(forKey: "subdirs") as? NSButton.StateValue ?? .off
-      //  filterToken = mySettings.object(forKey: "filter") as? NSTokenField ?? NSTokenField()
+        let token: [Substring] = mySettings.object(forKey: "filter") as? [Substring] ?? [""]
+        filterToken.stringValue=token.joined(separator: ",")
     }
     
     func displaySelectedFolders() {
@@ -135,7 +137,6 @@ class ViewController: NSViewController {
     override var representedObject: Any? {
         didSet {
         // Update the view, if already loaded.
-
         }
     }
 
@@ -164,7 +165,7 @@ class ViewController: NSViewController {
     }
 
     @IBAction func selectPath(_ sender: Any) {
-        path = self.getFileName() // ?? FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path
+        path = self.getFileName()
     }
     
     @IBAction func showInFinder(_ sender: Any) {
@@ -184,6 +185,7 @@ class ViewController: NSViewController {
         for value in tokenField(filterToken) ?? [""] {
             print(value)
         }
+        theWork.pressedStop = false
         errCounter = 0
         stopButton.isEnabled = true
         skipButton.isEnabled = true

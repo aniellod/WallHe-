@@ -11,6 +11,7 @@
 import Cocoa
 
 var vc: ViewController = ViewController()
+var avc: AdvancedViewController = AdvancedViewController()
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -29,6 +30,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         vc = (storyboard.instantiateController(withIdentifier: "ViewController") as?
               ViewController)!
         togglePopover(sender: self)
+        avc = (storyboard.instantiateController(withIdentifier: "AdvancedViewController") as?
+                                                  AdvancedViewController)!
     }
 
     @objc func togglePopover(sender: AnyObject) {

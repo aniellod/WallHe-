@@ -32,10 +32,6 @@ import UniformTypeIdentifiers
 
 extension String {
     func slash() -> String {
-//        if self.last != "/"
-//        { return self + "/"
-//        }
-//        return self
         return self.last != "/" ? self + "/" : self
     }
 
@@ -433,7 +429,7 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
         
         if theFilelist.count > 10000 {  // grab 10000 random images
             for _ in 1..<theFilelist.count-10000 {
-                if (theWork.pressedStop) { break }
+                if (theWork.pressedStop) { theWork.pressedStop = false; break }
                 theFilelist.remove(at: Int.random(in: 0..<theFilelist.count))
             }
         }
@@ -447,7 +443,7 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
                 } else { print("Is not an image: \(name)") }
             }
             if index % 500 == 0 { theWork.fileList = subFolders.shuffled() }
-            if (theWork.pressedStop) { break }
+            if (theWork.pressedStop) { theWork.pressedStop = false; break }
         }
         theWork.fileList = subFolders.shuffled()
         DispatchQueue.main.async { vc.stopAnimation() }
