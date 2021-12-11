@@ -21,7 +21,6 @@ class ViewController: NSViewController {
     @IBOutlet weak var doSubDirectories: NSButton!
     @IBOutlet weak var progress: NSProgressIndicator!
     @IBOutlet weak var loadingText: NSTextField!
-    @IBOutlet weak var filterToken: NSTokenField!
     
     var showInfo : Bool = false
     var isRunning : Bool = false
@@ -30,7 +29,9 @@ class ViewController: NSViewController {
     var path: [String] = []
     var lePopOver = NSPopover()
     var data: NSMutableArray = NSMutableArray()
-
+    var booboo = ""
+    var tokenFilter:NSTokenField = NSTokenField()
+    
     @IBAction func infoToggle(_ sender: NSButton) {
         setInfo()
     }
@@ -60,7 +61,6 @@ class ViewController: NSViewController {
         log.textContainer?.widthTracksTextView = false
         log.textContainer?.containerSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
         
-
         stopButton.isEnabled = false
         okButton.isEnabled = true
         delaySelect.removeAllItems()
@@ -94,7 +94,6 @@ class ViewController: NSViewController {
         let date = formatter.string(from: now)
         log.isEditable = true
         log.textStorage?.append(NSAttributedString(string: date + " - " + fileName + "\n"))
-        avc.logValue = NSAttributedString(string: date + " - " + fileName + "\n")
         log.isEditable = false
     }
     
@@ -106,7 +105,7 @@ class ViewController: NSViewController {
         mySettings.set(isRunning, forKey: "isRunning")
         mySettings.set(theWork.count, forKey: "count")
         mySettings.set(doSubDirectories.state, forKey: "subdirs")
-        mySettings.set(tokenField(filterToken), forKey: "filter")
+        mySettings.set(tokenField(tokenFilter), forKey: "filter")
     }
     
     func loadDefaults() {
@@ -123,7 +122,8 @@ class ViewController: NSViewController {
         stopButton.title = "Start"
         doSubDirectories.state = mySettings.object(forKey: "subdirs") as? NSButton.StateValue ?? .off
         let token: [Substring] = mySettings.object(forKey: "filter") as? [Substring] ?? [""]
-        filterToken.stringValue=token.joined(separator: ",")
+        tokenFilter.stringValue=token.joined(separator: ",")
+        print("tokenFilter: \(tokenFilter.stringValue)")
     }
     
     func displaySelectedFolders() {
@@ -132,6 +132,7 @@ class ViewController: NSViewController {
             folder = folder + "\n" + path
         }
         addLogItem(folder)
+        avc.addLogItem(folder)
     }
     
     override var representedObject: Any? {
@@ -182,7 +183,7 @@ class ViewController: NSViewController {
     
     
     @IBAction func Ok(_ sender: Any) {  //load button
-        for value in tokenField(filterToken) ?? [""] {
+        for value in tokenField(tokenFilter) ?? [""] {
             print(value)
         }
         theWork.pressedStop = false

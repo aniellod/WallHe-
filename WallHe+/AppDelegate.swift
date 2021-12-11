@@ -13,10 +13,13 @@ import Cocoa
 var vc: ViewController = ViewController()
 var avc: AdvancedViewController = AdvancedViewController()
 
+var logValue: String = ""
+
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     var popoverView: NSPopover = NSPopover()
+    var advancedPopoverView: NSPopover = NSPopover()
     var storyboard: NSStoryboard = NSStoryboard()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
@@ -60,4 +63,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func hidePopover(_ sender: AnyObject) {
             popoverView.performClose(sender)
         }
+    
+    @objc func showAdvancedPopover(_ sender: AnyObject) {
+        advancedPopoverView.contentViewController = avc
+        advancedPopoverView.behavior = .transient
+        //advancedPopoverView.show(relativeTo: statusItem.button!.bounds, of: statusItem.button!, preferredEdge: .maxY)
+     }
+    
+    func hideAdvancedPopover(_ sender: AnyObject) {
+        advancedPopoverView.performClose(sender)
+        }
 }
+
+//protocol viewMaker: NSViewController {
+//    init()
+//    
+//    func getLog(logText: String)
+//
+//}

@@ -143,6 +143,7 @@ class thread2 {
             let countString = String(self.count) + "/" + String(filelist.count) + " - "
             DispatchQueue.main.async { // add to the log window
                 vc.addLogItem(countString + self.filelist[i])
+                avc.addLogItem(countString + self.filelist[i])
             }
             autoreleasepool { // needed to avoid memory leaks.
                 updateWallpaper(name: filelist[i])
@@ -180,6 +181,7 @@ func setBackground(theURL: String) {
         } catch {
                 print("\(#function) \(#line): Unable to update wallpaper!")
                 vc.addLogItem("[\(#function) \(#line): unable to update wallpaper!]")
+                avc.addLogItem("[\(#function) \(#line): unable to update wallpaper!]")
         }
     }
 }
@@ -323,7 +325,9 @@ func updateWallpaper(name: String) {
     let origImage = NSImage(contentsOf: theURL)
     guard let height = origImage?.size.height else {
         print("[\(#function) \(#line): Error in calculating height of image at \(fullPath)")
-        DispatchQueue.main.async { vc.addLogItem("[\(#function) \(#line): unable to process image \(fullPath). Check path.]") }
+        DispatchQueue.main.async { vc.addLogItem("[\(#function) \(#line): unable to process image \(fullPath). Check path.]")
+            avc.addLogItem("[\(#function) \(#line): unable to process image \(fullPath). Check path.]")
+        }
         return
     }
     let ratio = NSScreen.screenHeight! / height
@@ -339,7 +343,9 @@ func updateWallpaper(name: String) {
     
     guard finalImage.pngWrite(to: destinationURL) else {
         print("File count not be saved")
-        DispatchQueue.main.async {  vc.addLogItem("[\(#function) \(#line): unable to save wallpaper]") }
+        DispatchQueue.main.async {  vc.addLogItem("[\(#function) \(#line): unable to save wallpaper]")
+            avc.addLogItem("[\(#function) \(#line): unable to save wallpaper]")
+        }
         return
     }
     setBackground(theURL: (destinationURL.absoluteString))
@@ -396,7 +402,7 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
     var theFilelist: [String] = []
     let queue = DispatchQueue(label: "on.paths.")
     var tokens: [Substring] = []
-    tokens = vc.tokenField(vc.filterToken) ?? [""]
+    tokens = vc.tokenField(vc.tokenFilter) ?? [""]
     
     queue.async {
         for pathToSearch in pathsToSearch {  // Build array with all file paths so we can pick some random ones out of the list
