@@ -269,16 +269,24 @@ class ViewController: NSViewController {
     
     @IBAction func addRemove(_ sender: Any) {
         if selectedButton.selectedSegment == 0 {
-            nameList = Array(Set(nameList + getFileName()))
+            let newPaths = getFileName()
+            nameList = Array(Set(nameList + newPaths))
+            let newSet = getSubDirs2(URLarrayToStringArray(url: newPaths))
+            theWork.filelist = Array(Set(theWork.filelist + newSet))
+            theWork.filelist.shuffle()
         }
         if selectedButton.selectedSegment == 1 {
             if tableView.numberOfRows > 0 && tableView.selectedRow > -1 {
                 //  https://stackoverflow.com/questions/59868180/swiftui-indexset-to-index-in-array
                 tableView.selectedRowIndexes.sorted(by: > ).forEach { (i) in
+                    theWork.filelist = theWork.removeFiles(sourcePaths: theWork.filelist, theURL: nameList[i].path)
+                    print("size of filelist = \(theWork.filelist.count) to Remove = \(nameList[i].path)")
                     nameList.remove(at: i)
                 }
+                
             }
         }
+        saveDefaults()
     }
     
     func URLarrayToStringArray(url: [URL]) -> [String] {
@@ -327,12 +335,14 @@ class ViewController: NSViewController {
     func startAnimation() {
         progress.isHidden = false
         loadingText.isHidden = false
+        selectedButton.isEnabled = false
         progress.startAnimation(nil)
     }
     
     func stopAnimation() {
         progress.stopAnimation(nil)
         progress.isHidden = true
+        selectedButton.isEnabled = true
         loadingText.isHidden = true
     }
 }

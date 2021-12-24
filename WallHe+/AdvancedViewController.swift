@@ -64,17 +64,4 @@ class AdvancedViewController: NSViewController {
         print("is editable tags: \(filteredTags.isEditable)")
         dismiss(self)
     }
-
-//    func addLogItem(_ filename: String) {
-//        let formatter = DateFormatter()
-//        let now = Date()
-//        formatter.dateStyle = .short
-//        formatter.timeStyle = .short
-//        let date = formatter.string(from: now)
-//        //logViewer_.isEditable = true
-//        logValue = logValue + "\(date) - \(filename)\n"
-//        updateLogViewer(logValue)
-//        print("Log view = \(logValue)")
-//        //logViewer_.isEditable = false
-//    }
 }

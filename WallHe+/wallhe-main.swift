@@ -100,8 +100,8 @@ class thread2 {
         return Array(Set(sourceUrls + destUrls))
     }
 
-    func removeFiles(sourceUrls: [URL], theURL: String) -> [URL] {
-        return sourceUrls.filter { !$0.path.contains(theURL) }
+    func removeFiles(sourcePaths: [String], theURL: String) -> [String] {
+        return sourcePaths.filter { !$0.contains(theURL) }
     }
     
     func errorMessage(_ value: String) {
@@ -475,3 +475,84 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
     return subFolders ?? ["/"]
 }
 
+func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the root of the directory tree to be traversed.
+    let filemgr = FileManager.default
+    var count = 0
+    let randNo = Int.random(in: 20..<100)
+    var subFolders: Array<String>! = []
+    
+    let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey, .localizedLabelKey, .tagNamesKey])
+    let options: FileManager.DirectoryEnumerationOptions = theWork.subs == true
+                    ? [.skipsHiddenFiles]
+                    : [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
+    var enumerator = FileManager.DirectoryEnumerator()
+    
+    for pathToSearch in pathsToSearch {  // obtain a small sample of images to begin the rotation.
+        enumerator = filemgr.enumerator(at: URL(fileURLWithPath: pathToSearch), includingPropertiesForKeys: Array(resourceKeys), options: options)!
+        for case let name as URL in enumerator {
+            do {
+                let properties = try name.resourceValues(forKeys: resourceKeys)
+                if properties.isDirectory! ||
+                    (properties.tagNames?.description.lowercased().contains("private")) ??
+                    false { continue } // skip directories
+            } catch { print(error) }
+            subFolders.append(name.path)
+            if count==randNo { break }  //exit the loop at a random point
+            count+=1
+        }
+    }
+    
+    count = 0
+    var theFilelist: [String] = []
+    let queue = DispatchQueue(label: "on.paths.")
+    var tokens: [Substring] = []
+    tokens = vc.tokenField(vc.tokenFilter) ?? [""]
+    
+    queue.async {
+        for pathToSearch in pathsToSearch {  // Build array with all file paths so we can pick some random ones out of the list
+            enumerator = filemgr.enumerator(at: URL(fileURLWithPath: pathToSearch), includingPropertiesForKeys: Array(resourceKeys), options: options)!
+            DispatchQueue.main.async {  vc.startAnimation() }
+            for case let name as URL in enumerator {
+                if (theWork.pressedStop) { break }
+                do {
+                    let properties = try name.resourceValues(forKeys: resourceKeys)
+                    if ((properties.tagNames?.description.lowercased().contains("private")) ?? false ) {
+                        continue } // skip this image
+                } catch { print(error) }
+                theFilelist.append(name.path)
+                
+            }
+        }
+        
+        print(theFilelist.count)
+        let badExtensions = [".mp4", ".log", ".csv", ".mov", ".avi"]
+        for badone in badExtensions {
+            theFilelist = theFilelist.filter{ !($0.lowercased().contains(badone.lowercased())) }
+        }
+
+        for filter in tokens {
+            print("filtering \(filter)")
+            theFilelist = theFilelist.filter{ !($0.lowercased()).contains(filter.lowercased()) }
+        }
+        print(theFilelist.count)
+        
+        if theFilelist.count > 10000 {  // grab 10000 random images
+            for _ in 1..<theFilelist.count-10000 {
+                if (theWork.pressedStop) { theWork.pressedStop = false; break }
+                theFilelist.remove(at: Int.random(in: 0..<theFilelist.count))
+            }
+        }
+        
+        for (index, name) in theFilelist.enumerated() { // check to remove non-image files
+            var isDir : ObjCBool = false
+            let x = FileManager.default
+            if x.fileExists(atPath: name, isDirectory:&isDir) {
+                if !isDir.boolValue && NSImage(contentsOfFile: name) != nil  { // weed out non-image files and directories
+                    subFolders.append(name)
+                } else { print("Is not an image: \(name)") }
+            }
+        }
+        DispatchQueue.main.async { vc.stopAnimation() }
+    }
+    return subFolders ?? ["/"]
+}
