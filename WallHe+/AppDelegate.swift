@@ -11,7 +11,7 @@
 import Cocoa
 
 var vc: ViewController = ViewController()
-var avc: AdvancedViewController = AdvancedViewController()
+//var avc: AdvancedViewController = AdvancedViewController()
 
 var logValue: String = ""
 
@@ -33,8 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         vc = (storyboard.instantiateController(withIdentifier: "ViewController") as?
               ViewController)!
         togglePopover(sender: self)
-        avc = (storyboard.instantiateController(withIdentifier: "AdvancedViewController") as?
-                                                  AdvancedViewController)!
+   //     avc = (storyboard.instantiateController(withIdentifier: "AdvancedViewController") as? AdvancedViewController)!
     }
 
     @objc func togglePopover(sender: AnyObject) {
@@ -63,21 +62,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func hidePopover(_ sender: AnyObject) {
             popoverView.performClose(sender)
         }
-    
-    @objc func showAdvancedPopover(_ sender: AnyObject) {
-        advancedPopoverView.contentViewController = avc
-        advancedPopoverView.behavior = .transient
-        //advancedPopoverView.show(relativeTo: statusItem.button!.bounds, of: statusItem.button!, preferredEdge: .maxY)
-     }
-    
-    func hideAdvancedPopover(_ sender: AnyObject) {
-        advancedPopoverView.performClose(sender)
-        }
 }
-
-//protocol viewMaker: NSViewController {
-//    init()
-//    
-//    func getLog(logText: String)
-//
-//}

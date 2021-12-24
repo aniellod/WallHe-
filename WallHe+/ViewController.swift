@@ -15,27 +15,42 @@ class ViewController: NSViewController {
     @IBOutlet weak var delaySelect: NSPopUpButton!
     @IBOutlet var okButton: NSButtonCell!
     @IBOutlet var stopButton: NSButton!
-    @IBOutlet var log: NSTextView!
     @IBOutlet var skipButton: NSButton!
     @IBOutlet var showInfoBox: NSButton!
     @IBOutlet weak var doSubDirectories: NSButton!
     @IBOutlet weak var progress: NSProgressIndicator!
     @IBOutlet weak var loadingText: NSTextField!
+    @IBOutlet weak var imageDisplayed: NSTextField!
+    
+    @IBOutlet weak var tableView: NSTableView!
+    @IBOutlet weak var selectedButton: NSSegmentedControl!
+    
+    @IBOutlet weak var column0: NSTableColumn!
+    @IBOutlet weak var headerView: NSTableHeaderView!
+    
+//    //  Converted to Swift 5.5 by Swiftify v5.5.17943 - https://swiftify.com/
+//    override func awakeFromNib() {
+//        var frame = tableView.headerView?.frame
+//        frame?.size.height = 26
+//        tableView.headerView?.frame = frame ?? NSRect.zero
+//    }
     
     var showInfo : Bool = false
     var isRunning : Bool = false
     var menuSelect : Int = 2
     var delay: Int = 0
-    var path: [String] = []
+   // var path: [URL] = []
     var lePopOver = NSPopover()
     var data: NSMutableArray = NSMutableArray()
     var booboo = ""
     var tokenFilter:NSTokenField = NSTokenField()
     
+    @objc dynamic var nameList: [URL] = [URL(string: "/value")!]
+    
     @IBAction func infoToggle(_ sender: NSButton) {
         setInfo()
     }
-
+    
     func tokenField(_ tokenFieldArg: NSTokenField) -> [Substring]? {
         let valueNames: String = String(tokenFieldArg.stringValue as String)
         let valueArray = valueNames.split(separator: ",")
@@ -55,12 +70,15 @@ class ViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        var theTableView = column0.tableView
+        theTableView?.headerView?.frame
         //setup the log window so each line doesn't wrap around
-        log.maxSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
-        log.isHorizontallyResizable = true
-        log.textContainer?.widthTracksTextView = false
-        log.textContainer?.containerSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
-        
+        //logData.maxSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
+        //logData.isHorizontallyResizable = true
+        //logData.textContainer?.widthTracksTextView = false
+        //logData.textContainer?.containerSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
+   
+        nameList.remove(at: 0)
         stopButton.isEnabled = false
         okButton.isEnabled = true
         delaySelect.removeAllItems()
@@ -79,7 +97,7 @@ class ViewController: NSViewController {
         if isRunning {
             stopButton.isEnabled = true
             skipButton.isEnabled = true
-            setUp(secondsDelay: delay, paths: path, subs: (doSubDirectories.state == .on ? true : false))
+            setUp(secondsDelay: delay, paths: nameList, subs: (doSubDirectories.state == .on ? true : false))
             okButton.isEnabled = false
             stopButton.title = "Stop"
             theWork.start()
@@ -92,15 +110,17 @@ class ViewController: NSViewController {
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         let date = formatter.string(from: now)
-        log.isEditable = true
-        log.textStorage?.append(NSAttributedString(string: date + " - " + fileName + "\n"))
-        log.isEditable = false
+        //logData.isEditable = true
+        //logData.textStorage?.append(NSAttributedString(string: date + " - " + fileName + "\n"))
+        //logData.isEditable = false
+        logValue = logValue + "\(date) - \(fileName)\n"
     }
     
     func saveDefaults() {
         let mySettings = UserDefaults.standard
         mySettings.set(delaySelect.indexOfSelectedItem, forKey: "menuSelect")
-        mySettings.set(self.path, forKey: "path")
+        let nameListStore = URLarrayToStringArray(url: nameList)
+        mySettings.set(nameListStore, forKey: "path")
         mySettings.set(showInfo, forKey: "showinformation")
         mySettings.set(isRunning, forKey: "isRunning")
         mySettings.set(theWork.count, forKey: "count")
@@ -112,7 +132,8 @@ class ViewController: NSViewController {
         let mySettings = UserDefaults.standard
         menuSelect = mySettings.object(forKey: "menuSelect") as? Int ?? 2
         delaySelect.select(delaySelect.menu?.item(at: menuSelect))
-        self.path = mySettings.object(forKey: "path") as? [String] ?? [FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path]
+        let nameListStore = mySettings.object(forKey: "path")
+        nameList = StringArrayToURLArray(strings: nameListStore as? [String] ?? [FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path])
         displaySelectedFolders()
         showInfo = mySettings.bool(forKey: "showinformation")
         showInfoBox.state = showInfo == true ? .on : .off
@@ -126,13 +147,18 @@ class ViewController: NSViewController {
         print("tokenFilter: \(tokenFilter.stringValue)")
     }
     
+    var fileName: String {
+        get { return imageDisplayed.stringValue }
+        set { imageDisplayed.stringValue = newValue }
+    }
+    
     func displaySelectedFolders() {
         var folder: String = ""
-        for path in self.path {
-            folder = folder + "\n" + path
+        for path in nameList {
+            folder = folder + "\n" + path.path
         }
         addLogItem(folder)
-        avc.addLogItem(folder)
+        //avc.addLogItem(folder)
     }
     
     override var representedObject: Any? {
@@ -141,7 +167,7 @@ class ViewController: NSViewController {
         }
     }
 
-    func getFileName() -> [String] {
+    func getFileName() -> [URL] {
         let dialog = NSOpenPanel();
         dialog.title                   = "Choose folder";
         dialog.showsResizeIndicator    = true;
@@ -153,12 +179,12 @@ class ViewController: NSViewController {
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
             let result = dialog.urls // Pathname of the file
             print("Result = \(result)")
-            var selectedPath: Array<String> = []
+//            var selectedPath: Array<String> = []
             if (result.count != 0) {
-                for path in result {
-                    selectedPath.append(path.path)
-                }
-                return selectedPath
+//                for path in result {
+//                    selectedPath.append(path.path)
+//                }
+                return result
             }
         }
             // User clicked on "Cancel"
@@ -166,7 +192,7 @@ class ViewController: NSViewController {
     }
 
     @IBAction func selectPath(_ sender: Any) {
-        path = self.getFileName()
+        nameList = getFileName()
     }
     
     @IBAction func showInFinder(_ sender: Any) {
@@ -191,10 +217,11 @@ class ViewController: NSViewController {
         stopButton.isEnabled = true
         skipButton.isEnabled = true
         displaySelectedFolders()
-        setUp(secondsDelay: delay, paths: path,subs: (doSubDirectories.state == .on ? true : false))
+        setUp(secondsDelay: delay, paths: nameList,subs: (doSubDirectories.state == .on ? true : false))
     }
     
     @IBAction func exitApp(_ sender: Any) {
+        theWork.stop()
         stopAnimation()
         saveDefaults()
         exit(0)
@@ -211,9 +238,9 @@ class ViewController: NSViewController {
             okButton.isEnabled = true
             stopButton.title = "Start"
             skipButton.isEnabled = false
-            theWork.stop()
             theWork.pressedStop = true
             isRunning = false
+            theWork.stop()
         } else {
             okButton.isEnabled = false
             stopButton.title = "Stop"
@@ -238,6 +265,36 @@ class ViewController: NSViewController {
         self.delay = getSeconds(selection: delaySelect.indexOfSelectedItem)
         theWork.seconds = UInt32(self.delay)
         saveDefaults()
+    }
+    
+    @IBAction func addRemove(_ sender: Any) {
+        if selectedButton.selectedSegment == 0 {
+            nameList = Array(Set(nameList + getFileName()))
+        }
+        if selectedButton.selectedSegment == 1 {
+            if tableView.numberOfRows > 0 && tableView.selectedRow > -1 {
+                //  https://stackoverflow.com/questions/59868180/swiftui-indexset-to-index-in-array
+                tableView.selectedRowIndexes.sorted(by: > ).forEach { (i) in
+                    nameList.remove(at: i)
+                }
+            }
+        }
+    }
+    
+    func URLarrayToStringArray(url: [URL]) -> [String] {
+        var stringArray:[String] = []
+        for i in url {
+            stringArray.append(i.path)
+        }
+        return stringArray
+    }
+    
+    func StringArrayToURLArray(strings: [String]) -> [URL] {
+        var URLArray:[URL] = []
+        for i in strings {
+            URLArray.append(URL(string: i)!)
+        }
+        return URLArray
     }
     
     func getSeconds(selection: Int) -> Int {
@@ -279,4 +336,3 @@ class ViewController: NSViewController {
         loadingText.isHidden = true
     }
 }
-

@@ -96,6 +96,14 @@ class thread2 {
         set { currentImageFile = newValue }
     }
     
+    func addMoreFiles(sourceUrls: [URL], destUrls: [URL]) -> [URL] {
+        return Array(Set(sourceUrls + destUrls))
+    }
+
+    func removeFiles(sourceUrls: [URL], theURL: String) -> [URL] {
+        return sourceUrls.filter { !$0.path.contains(theURL) }
+    }
+    
     func errorMessage(_ value: String) {
         if let window = NSApp.keyWindow {
             let errorMessage = NSAlert()
@@ -136,6 +144,7 @@ class thread2 {
     @objc func mainLoop() {
         let initCount = filelist.count
         var countFlag = false
+        if count >= filelist.count { thread.cancel(); return } //no images were found in initial pass or something weird is going on. Just bail for now.
         
         for i in count..<filelist.count {
             self.currentImageFile = filelist[i]
@@ -143,7 +152,7 @@ class thread2 {
             let countString = String(self.count) + "/" + String(filelist.count) + " - "
             DispatchQueue.main.async { // add to the log window
                 vc.addLogItem(countString + self.filelist[i])
-                avc.addLogItem(countString + self.filelist[i])
+                vc.fileName = self.filelist[i]
             }
             autoreleasepool { // needed to avoid memory leaks.
                 updateWallpaper(name: filelist[i])
@@ -175,13 +184,20 @@ func setBackground(theURL: String) {
     options[.imageScaling] = NSImageScaling.scaleProportionallyUpOrDown.rawValue
     options[.allowClipping] = false
     let theScreens = NSScreen.screens
-    for x in theScreens {
+    
+     for x in theScreens {
         do {
+            /**
+                Works around a macOS bug where if you set a wallpaper to the same path as the existing wallpaper but with different content, it doesn't update.
+                https://openradar.appspot.com/radar?id=6095446787227648
+            */
+            // We need to sleep for a little bit, otherwise it doesn't take effect.
+            // It works with 0.4, but not with 0.3, so we're using 0.5 just to be sure.
+            sleep(UInt32(0.5))
             try workspace.setDesktopImageURL(fixedURL!, for: x, options: options)
         } catch {
                 print("\(#function) \(#line): Unable to update wallpaper!")
                 vc.addLogItem("[\(#function) \(#line): unable to update wallpaper!]")
-                avc.addLogItem("[\(#function) \(#line): unable to update wallpaper!]")
         }
     }
 }
@@ -326,7 +342,6 @@ func updateWallpaper(name: String) {
     guard let height = origImage?.size.height else {
         print("[\(#function) \(#line): Error in calculating height of image at \(fullPath)")
         DispatchQueue.main.async { vc.addLogItem("[\(#function) \(#line): unable to process image \(fullPath). Check path.]")
-            avc.addLogItem("[\(#function) \(#line): unable to process image \(fullPath). Check path.]")
         }
         return
     }
@@ -344,18 +359,22 @@ func updateWallpaper(name: String) {
     guard finalImage.pngWrite(to: destinationURL) else {
         print("File count not be saved")
         DispatchQueue.main.async {  vc.addLogItem("[\(#function) \(#line): unable to save wallpaper]")
-            avc.addLogItem("[\(#function) \(#line): unable to save wallpaper]")
         }
         return
     }
     setBackground(theURL: (destinationURL.absoluteString))
 }
 
-func setUp(secondsDelay: Int, paths: [String], subs: Bool) {
+func setUp(secondsDelay: Int, paths: [URL], subs: Bool) {
     theWork.subs = subs
     let seconds: UInt32 = UInt32(abs(Int(exactly: secondsDelay)!))
     theWork.delay = seconds
-    theWork.directory = paths
+    theWork.directory = []
+    for i in paths {
+        theWork.directory.append(i.path)
+        print ("path = \(i.path)")
+    }
+   // theWork.directory = paths
     theWork.load()
 }
 
@@ -425,7 +444,6 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
         for badone in badExtensions {
             theFilelist = theFilelist.filter{ !($0.lowercased().contains(badone.lowercased())) }
         }
-        
 
         for filter in tokens {
             print("filtering \(filter)")
@@ -456,3 +474,4 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
     }
     return subFolders ?? ["/"]
 }
+

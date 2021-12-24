@@ -14,6 +14,7 @@ class AdvancedViewController: NSViewController {
     @IBOutlet weak var filteredTags: NSTokenField!
     
     var tempLogView: NSTextView = NSTextView()
+    var advancedPopoverView: NSPopover = NSPopover()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,19 +23,19 @@ class AdvancedViewController: NSViewController {
         logViewer.textContainer?.widthTracksTextView = false
         logViewer.textContainer?.containerSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
         logViewer.textStorage?.append(NSAttributedString(string: logValue))
+        logViewer.textContainer?.textView?.moveToEndOfDocument(nil)
         filteredTags.stringValue = vc.tokenFilter.stringValue
+        logViewer.isEditable = true
+        if filteredTags.acceptsFirstResponder {
+            filteredTags.window?.makeFirstResponder(filteredTags)
+        }
+        var avc: AdvancedViewController = (storyboard!.instantiateController(withIdentifier: "AdvancedViewController") as? AdvancedViewController)!
     }
     
     override var representedObject: Any? {
         didSet {
         // Update the view, if already loaded.
         }
-    }
-    
-    func tokenField(_ tokenFieldArg: NSTokenField) -> [Substring]? {
-        let valueNames: String = String(tokenFieldArg.stringValue as String)
-        let valueArray = valueNames.split(separator: ",")
-        return valueArray
     }
     
     @IBAction func sendTokens(_ sender: Any) {
@@ -49,27 +50,31 @@ class AdvancedViewController: NSViewController {
         }
     }
     
+    @IBAction func update(_ sender: Any) {
+        if logViewer != nil {
+            logViewer.textContainer?.textView?.string = ""
+            logViewer.textStorage?.append(NSAttributedString(string: logValue))
+            logViewer.textContainer?.textView?.moveToEndOfDocument(sender)
+        }
+    }
+    
     @IBAction func ok(_ sender: Any) {
         vc.tokenFilter = filteredTags
         print("filteredTags = \(vc.tokenFilter.stringValue)")
+        print("is editable tags: \(filteredTags.isEditable)")
         dismiss(self)
     }
-    
-    @IBAction func labelToInsert(_ sender: Any) {
-        
-    }
-    
-    
-    func addLogItem(_ filename: String) {
-        let formatter = DateFormatter()
-        let now = Date()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .short
-        let date = formatter.string(from: now)
-        //logViewer_.isEditable = true
-        logValue = logValue + "\(date) - \(filename)\n"
-        updateLogViewer(logValue)
-        print("Log view = \(logValue)")
-        //logViewer_.isEditable = false
-    }
+
+//    func addLogItem(_ filename: String) {
+//        let formatter = DateFormatter()
+//        let now = Date()
+//        formatter.dateStyle = .short
+//        formatter.timeStyle = .short
+//        let date = formatter.string(from: now)
+//        //logViewer_.isEditable = true
+//        logValue = logValue + "\(date) - \(filename)\n"
+//        updateLogViewer(logValue)
+//        print("Log view = \(logValue)")
+//        //logViewer_.isEditable = false
+//    }
 }
