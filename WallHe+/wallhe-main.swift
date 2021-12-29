@@ -202,8 +202,8 @@ func setBackground(theURL: String) {
     }
 }
 
-// fileName: outputs the filename to use. This is a really silly hack as it should be able to tell
-// MacOS to reload the wallpaper file. Need to switch names as otherwise MacOS will not update it otherwise.
+// fileName: returns one of two filename to use. This is a really silly hack as MacOS doesn't update the wallpaper otherwise.
+// MacOS needs to reload the wallpaper file and it seems to only work if we switch file names as otherwise MacOS will not update the wallpaper. :/
 func fileName() -> String {
     var fileName = "wallhe-wallpaper1.png"
     let path = NSSearchPathForDirectoriesInDomains(.picturesDirectory, .userDomainMask, true)[0] as String
@@ -556,3 +556,4 @@ func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the ro
     }
     return subFolders ?? ["/"]
 }
+

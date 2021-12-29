@@ -29,7 +29,7 @@ class AdvancedViewController: NSViewController {
         if filteredTags.acceptsFirstResponder {
             filteredTags.window?.makeFirstResponder(filteredTags)
         }
-        var avc: AdvancedViewController = (storyboard!.instantiateController(withIdentifier: "AdvancedViewController") as? AdvancedViewController)!
+        //var avc: AdvancedViewController = (storyboard!.instantiateController(withIdentifier: "AdvancedViewController") as? AdvancedViewController)!
     }
     
     override var representedObject: Any? {

@@ -63,3 +63,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             popoverView.performClose(sender)
         }
 }
+

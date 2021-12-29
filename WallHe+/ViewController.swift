@@ -28,22 +28,16 @@ class ViewController: NSViewController {
     @IBOutlet weak var column0: NSTableColumn!
     @IBOutlet weak var headerView: NSTableHeaderView!
     
-//    //  Converted to Swift 5.5 by Swiftify v5.5.17943 - https://swiftify.com/
-//    override func awakeFromNib() {
-//        var frame = tableView.headerView?.frame
-//        frame?.size.height = 26
-//        tableView.headerView?.frame = frame ?? NSRect.zero
-//    }
-    
     var showInfo : Bool = false
     var isRunning : Bool = false
     var menuSelect : Int = 2
     var delay: Int = 0
-   // var path: [URL] = []
     var lePopOver = NSPopover()
     var data: NSMutableArray = NSMutableArray()
     var booboo = ""
     var tokenFilter:NSTokenField = NSTokenField()
+    
+    let defaultSortDescriptors = [NSSortDescriptor]()
     
     @objc dynamic var nameList: [URL] = [URL(string: "/value")!]
     
@@ -70,14 +64,15 @@ class ViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        var theTableView = column0.tableView
-        theTableView?.headerView?.frame
-        //setup the log window so each line doesn't wrap around
-        //logData.maxSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
-        //logData.isHorizontallyResizable = true
-        //logData.textContainer?.widthTracksTextView = false
-        //logData.textContainer?.containerSize = NSMakeSize(CGFloat(Float.greatestFiniteMagnitude), CGFloat(Float.greatestFiniteMagnitude))
-   
+        let multipleAttributes: [NSAttributedString.Key : Any] = [
+            //NSAttributedString.Key.foregroundColor: NSColor.black,
+            //NSAttributedString.Key.backgroundColor: NSColor.white,
+            NSAttributedString.Key.strokeWidth: NSNumber(value: -3.0),
+            NSAttributedString.Key.font: NSFont(name: "Helvetica", size: 13.0)! ]
+        let attrString = NSAttributedString(string: "Image Source", attributes: multipleAttributes)
+        column0.headerCell.attributedStringValue = attrString
+//        setSortDescriptor()
+        
         nameList.remove(at: 0)
         stopButton.isEnabled = false
         okButton.isEnabled = true
@@ -94,6 +89,7 @@ class ViewController: NSViewController {
                                 ])
         loadDefaults()
         self.delay = getSeconds(selection: menuSelect)
+
         if isRunning {
             stopButton.isEnabled = true
             skipButton.isEnabled = true
@@ -110,9 +106,6 @@ class ViewController: NSViewController {
         formatter.dateStyle = .short
         formatter.timeStyle = .short
         let date = formatter.string(from: now)
-        //logData.isEditable = true
-        //logData.textStorage?.append(NSAttributedString(string: date + " - " + fileName + "\n"))
-        //logData.isEditable = false
         logValue = logValue + "\(date) - \(fileName)\n"
     }
     
@@ -145,6 +138,8 @@ class ViewController: NSViewController {
         let token: [Substring] = mySettings.object(forKey: "filter") as? [Substring] ?? [""]
         tokenFilter.stringValue=token.joined(separator: ",")
         print("tokenFilter: \(tokenFilter.stringValue)")
+        tableView.sortDescriptors = defaultSortDescriptors
+        tableView.reloadData()
     }
     
     var fileName: String {
@@ -152,13 +147,35 @@ class ViewController: NSViewController {
         set { imageDisplayed.stringValue = newValue }
     }
     
+//    func setSortDescriptor() {
+//        let idDescriptor = NSSortDescriptor(key: "header", ascending: true)
+//            tableView.tableColumns[0].sortDescriptorPrototype = idDescriptor
+//    }
+//
+//    func tableView(_ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
+//        guard let sortDescriptor = tableView.sortDescriptors.first else { return }
+//        sortPurchases(ascending: sortDescriptor.ascending)
+//        tableView.reloadData()
+//    }
+//
+//    func sortPurchases(ascending: Bool) {
+//        nameList.sort { (p1, p2) -> Bool in
+//            let id1 = p1.path
+//            let id2 = p2.path
+//            if ascending {
+//                return id1 < id2
+//            } else {
+//                return id2 < id1
+//            }
+//        }
+//    }
+    
     func displaySelectedFolders() {
         var folder: String = ""
         for path in nameList {
             folder = folder + "\n" + path.path
         }
         addLogItem(folder)
-        //avc.addLogItem(folder)
     }
     
     override var representedObject: Any? {
@@ -179,15 +196,11 @@ class ViewController: NSViewController {
         if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
             let result = dialog.urls // Pathname of the file
             print("Result = \(result)")
-//            var selectedPath: Array<String> = []
             if (result.count != 0) {
-//                for path in result {
-//                    selectedPath.append(path.path)
-//                }
                 return result
             }
         }
-            // User clicked on "Cancel"
+            // "Cancel" was clicked
             return []
     }
 
@@ -206,7 +219,6 @@ class ViewController: NSViewController {
         } catch { return }
         }
     }
-    
     
     @IBAction func Ok(_ sender: Any) {  //load button
         for value in tokenField(tokenFilter) ?? [""] {
@@ -283,7 +295,6 @@ class ViewController: NSViewController {
                     print("size of filelist = \(theWork.filelist.count) to Remove = \(nameList[i].path)")
                     nameList.remove(at: i)
                 }
-                
             }
         }
         saveDefaults()

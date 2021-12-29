@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 53;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,7 +13,6 @@
 		34689DD4273DB5B7004BB649 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 34689DD2273DB5B7004BB649 /* Main.storyboard */; };
 		34689DDD273DDC4A004BB649 /* wallhe-main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34689DDC273DDC4A004BB649 /* wallhe-main.swift */; };
 		34689DE3273DDFCB004BB649 /* SwiftImage in Frameworks */ = {isa = PBXBuildFile; productRef = 34689DE2273DDFCB004BB649 /* SwiftImage */; };
-		3477258C2774154A006DEAFC /* selectedFolders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3477258B2774154A006DEAFC /* selectedFolders.swift */; };
 		34B50D24275D6D01007BEBD9 /* AdvancedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34B50D23275D6D01007BEBD9 /* AdvancedViewController.swift */; };
 		34B7D836274BCF9000531503 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 34B7D835274BCF9000531503 /* README.md */; };
 		34B7D838274BFB5600531503 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 34B7D837274BFB5600531503 /* LICENSE */; };
@@ -28,7 +27,6 @@
 		34689DD5273DB5B7004BB649 /* WallHe_.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = WallHe_.entitlements; sourceTree = "<group>"; };
 		34689DDB273DD464004BB649 /* WallHe--Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "WallHe--Info.plist"; sourceTree = SOURCE_ROOT; };
 		34689DDC273DDC4A004BB649 /* wallhe-main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "wallhe-main.swift"; sourceTree = "<group>"; };
-		3477258B2774154A006DEAFC /* selectedFolders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = selectedFolders.swift; sourceTree = "<group>"; };
 		3482A7B52745C7290021EDF3 /* fr-CA */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "fr-CA"; path = "fr-CA.lproj/Main.strings"; sourceTree = "<group>"; };
 		3482A7B92745CEAC0021EDF3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
 		34B50D23275D6D01007BEBD9 /* AdvancedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedViewController.swift; sourceTree = "<group>"; };
@@ -74,7 +72,6 @@
 				34689DCE273DB5B5004BB649 /* ViewController.swift */,
 				34689DDC273DDC4A004BB649 /* wallhe-main.swift */,
 				34B50D23275D6D01007BEBD9 /* AdvancedViewController.swift */,
-				3477258B2774154A006DEAFC /* selectedFolders.swift */,
 				34689DD0273DB5B7004BB649 /* Assets.xcassets */,
 				34689DD2273DB5B7004BB649 /* Main.storyboard */,
 				34689DD5273DB5B7004BB649 /* WallHe_.entitlements */,
@@ -121,7 +118,7 @@
 				};
 			};
 			buildConfigurationList = 34689DC4273DB5B5004BB649 /* Build configuration list for PBXProject "WallHe+" */;
-			compatibilityVersion = "Xcode 13.0";
+			compatibilityVersion = "Xcode 10.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -161,7 +158,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3477258C2774154A006DEAFC /* selectedFolders.swift in Sources */,
 				34689DCF273DB5B5004BB649 /* ViewController.swift in Sources */,
 				34689DDD273DDC4A004BB649 /* wallhe-main.swift in Sources */,
 				34689DCD273DB5B5004BB649 /* AppDelegate.swift in Sources */,
@@ -240,7 +236,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSMainStoryboardFile = "";
 				INFOPLIST_KEY_UIMainStoryboardFile = "";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -300,7 +296,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSMainStoryboardFile = "";
 				INFOPLIST_KEY_UIMainStoryboardFile = "";
-				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "WallHe+";
