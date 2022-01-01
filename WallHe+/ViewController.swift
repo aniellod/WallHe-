@@ -39,6 +39,8 @@ class ViewController: NSViewController {
     
     let defaultSortDescriptors = [NSSortDescriptor]()
     
+    let jsonIO = saveReadJson()
+    
     @objc dynamic var nameList: [URL] = [URL(string: "/value")!]
     
     @IBAction func infoToggle(_ sender: NSButton) {
@@ -314,6 +316,18 @@ class ViewController: NSViewController {
             URLArray.append(URL(string: i)!)
         }
         return URLArray
+    }
+    
+    @IBAction func savePaths(_ sender: Any) {
+        jsonIO.pathToSave = nameList
+        jsonIO.saveDocumentDirectory()
+    }
+    
+    @IBAction func loadPaths(_ sender: Any) {
+        let paths = jsonIO.openDocument()
+        if !paths.isEmpty {
+            nameList = paths
+        }
     }
     
     func getSeconds(selection: Int) -> Int {

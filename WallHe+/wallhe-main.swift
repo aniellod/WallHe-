@@ -374,7 +374,6 @@ func setUp(secondsDelay: Int, paths: [URL], subs: Bool) {
         theWork.directory.append(i.path)
         print ("path = \(i.path)")
     }
-   // theWork.directory = paths
     theWork.load()
 }
 
@@ -440,8 +439,7 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
         }
         
         print(theFilelist.count)
-        let badExtensions = [".mp4", ".log", ".csv", ".mov", ".avi"]
-        for badone in badExtensions {
+        for badone in [".mp4", ".log", ".csv", ".mov", ".avi"] {
             theFilelist = theFilelist.filter{ !($0.lowercased().contains(badone.lowercased())) }
         }
 
@@ -525,8 +523,7 @@ func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the ro
         }
         
         print(theFilelist.count)
-        let badExtensions = [".mp4", ".log", ".csv", ".mov", ".avi"]
-        for badone in badExtensions {
+        for badone in [".mp4", ".log", ".csv", ".mov", ".avi"] {
             theFilelist = theFilelist.filter{ !($0.lowercased().contains(badone.lowercased())) }
         }
 
@@ -543,7 +540,7 @@ func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the ro
             }
         }
         
-        for (index, name) in theFilelist.enumerated() { // check to remove non-image files
+        for name in theFilelist {  // check to remove non-image files
             var isDir : ObjCBool = false
             let x = FileManager.default
             if x.fileExists(atPath: name, isDirectory:&isDir) {
@@ -557,3 +554,93 @@ func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the ro
     return subFolders ?? ["/"]
 }
 
+class saveReadJson {
+    
+    private var path:[URL]
+    
+    init() {
+        path = []
+    }
+    
+    var pathToSave: [URL] {
+        get { return path }
+        set { path = newValue }
+    }
+    
+    func saveDocumentDirectory() {
+       // var pathDirectory = getDocumentsDirectory()
+        //pathDirectory = pathDirectory.appendingPathExtension("json")
+        //try? FileManager().createDirectory(at: pathDirectory, withIntermediateDirectories: true)
+       // let filename = getFilename()
+      //  let filePath = pathDirectory.appendingPathComponent("levels.json")
+        let filePath = getFilename()
+        if filePath != nil {
+            let levels = pathToSave
+            let json = try? JSONEncoder().encode(levels)
+
+            do {
+                 try json!.write(to: filePath!)
+            } catch {
+                print("Failed to write JSON data: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func openDocument() -> [URL] {
+        let fileName = getDocument()
+        if fileName == nil { return [] }
+        do {
+            let data = try Data(contentsOf: fileName!, options: .mappedIfSafe)
+            //let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
+            let decoder = JSONDecoder()
+            let paths: [URL] = try! decoder.decode([URL].self, from: data)
+            return paths
+        } catch { print("\(error)") }
+        return []
+    }
+    
+    private func getDocument() -> URL? {
+        let dialog = NSOpenPanel();
+        dialog.title                   = "Choose file";
+        dialog.showsResizeIndicator    = true;
+        dialog.showsHiddenFiles        = false;
+        dialog.allowsMultipleSelection = false;
+        dialog.canChooseDirectories = false
+        dialog.canChooseFiles = true
+        
+        if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
+            let result = dialog.url! // Pathname of the file
+            print("Result = \(String(describing: result))")
+            if (!result.pathComponents.isEmpty) {
+                return result
+            }
+        }
+        // "Cancel" was clicked
+        return nil //URL(string: "/")!
+    }
+    
+    private func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+        return paths[0]
+    }
+    
+    func getFilename() -> URL? {
+        let dialog = NSSavePanel()
+        dialog.title = "Save set to:"
+        dialog.canCreateDirectories = true
+        dialog.directoryURL = getDocumentsDirectory()
+        dialog.runModal()
+        print("dialog.url = \(String(describing: dialog.url!))")
+        return dialog.url
+    }
+    
+    private func append(toPath path: String, withPathComponent pathComponent: String) -> String? {
+        if var pathURL = URL(string: path) {
+            pathURL.appendPathComponent(pathComponent)
+            
+            return pathURL.absoluteString
+        }
+        
+        return nil
+    }
+}

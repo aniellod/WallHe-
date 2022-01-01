@@ -55,7 +55,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
    @objc func showPopover(_ sender: AnyObject) {
         popoverView.contentViewController = vc
-        popoverView.behavior = .transient
+        popoverView.behavior = .applicationDefined
         popoverView.show(relativeTo: statusItem.button!.bounds, of: statusItem.button!, preferredEdge: .maxY)
     }
     
