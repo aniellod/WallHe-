@@ -11,14 +11,13 @@
 import Cocoa
 
 var vc: ViewController = ViewController()
-//var avc: AdvancedViewController = AdvancedViewController()
-
+var popoverView: NSPopover = NSPopover()
 var logValue: String = ""
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    var popoverView: NSPopover = NSPopover()
+    
     var advancedPopoverView: NSPopover = NSPopover()
     var storyboard: NSStoryboard = NSStoryboard()
 
@@ -33,7 +32,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         vc = (storyboard.instantiateController(withIdentifier: "ViewController") as?
               ViewController)!
         togglePopover(sender: self)
-   //     avc = (storyboard.instantiateController(withIdentifier: "AdvancedViewController") as? AdvancedViewController)!
     }
 
     @objc func togglePopover(sender: AnyObject) {

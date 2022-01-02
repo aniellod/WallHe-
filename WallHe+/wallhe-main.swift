@@ -557,9 +557,11 @@ func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the ro
 class saveReadJson {
     
     private var path:[URL]
+    private var theFileName:URL
     
     init() {
         path = []
+        theFileName = URL(string: "/tmp/file.json")!
     }
     
     var pathToSave: [URL] {
@@ -567,19 +569,31 @@ class saveReadJson {
         set { path = newValue }
     }
     
+    var fullyQualifiedFileName: URL {
+        get { return theFileName }
+        set { theFileName = newValue }
+    }
+    
     func saveDocumentDirectory() {
-       // var pathDirectory = getDocumentsDirectory()
-        //pathDirectory = pathDirectory.appendingPathExtension("json")
-        //try? FileManager().createDirectory(at: pathDirectory, withIntermediateDirectories: true)
-       // let filename = getFilename()
-      //  let filePath = pathDirectory.appendingPathComponent("levels.json")
         let filePath = getFilename()
         if filePath != nil {
             let levels = pathToSave
             let json = try? JSONEncoder().encode(levels)
-
             do {
                  try json!.write(to: filePath!)
+                     fullyQualifiedFileName = filePath!
+            } catch {
+                print("Failed to write JSON data: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func saveExisting() {
+        if FileManager().fileExists(atPath: fullyQualifiedFileName.path) {
+            print("pathtosave:\(pathToSave) \nfully:\(fullyQualifiedFileName)")
+            let json = try? JSONEncoder().encode(pathToSave)
+            do {
+                 try json!.write(to: fullyQualifiedFileName)
             } catch {
                 print("Failed to write JSON data: \(error.localizedDescription)")
             }
@@ -590,8 +604,8 @@ class saveReadJson {
         let fileName = getDocument()
         if fileName == nil { return [] }
         do {
+            fullyQualifiedFileName = fileName!
             let data = try Data(contentsOf: fileName!, options: .mappedIfSafe)
-            //let jsonResult = try JSONSerialization.jsonObject(with: data, options: .mutableLeaves)
             let decoder = JSONDecoder()
             let paths: [URL] = try! decoder.decode([URL].self, from: data)
             return paths

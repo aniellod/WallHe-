@@ -21,6 +21,7 @@ class ViewController: NSViewController {
     @IBOutlet weak var progress: NSProgressIndicator!
     @IBOutlet weak var loadingText: NSTextField!
     @IBOutlet weak var imageDisplayed: NSTextField!
+    @IBOutlet weak var saveButton: NSButton!
     
     @IBOutlet weak var tableView: NSTableView!
     @IBOutlet weak var selectedButton: NSSegmentedControl!
@@ -37,9 +38,21 @@ class ViewController: NSViewController {
     var booboo = ""
     var tokenFilter:NSTokenField = NSTokenField()
     
+    override var representedObject: Any? {
+        didSet {
+        // Update the view, if already loaded.
+            print("Testing what this does.")
+        }
+    }
+    
     let defaultSortDescriptors = [NSSortDescriptor]()
     
     let jsonIO = saveReadJson()
+    
+    var fileName: String {
+        get { return imageDisplayed.stringValue }
+        set { imageDisplayed.stringValue = newValue }
+    }
     
     @objc dynamic var nameList: [URL] = [URL(string: "/value")!]
     
@@ -66,14 +79,7 @@ class ViewController: NSViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        let multipleAttributes: [NSAttributedString.Key : Any] = [
-            //NSAttributedString.Key.foregroundColor: NSColor.black,
-            //NSAttributedString.Key.backgroundColor: NSColor.white,
-            NSAttributedString.Key.strokeWidth: NSNumber(value: -3.0),
-            NSAttributedString.Key.font: NSFont(name: "Helvetica", size: 13.0)! ]
-        let attrString = NSAttributedString(string: "Image Source", attributes: multipleAttributes)
-        column0.headerCell.attributedStringValue = attrString
-//        setSortDescriptor()
+        setColumn0Title(headingText: "Image Source")
         
         nameList.remove(at: 0)
         stopButton.isEnabled = false
@@ -102,6 +108,16 @@ class ViewController: NSViewController {
         }
     }
     
+    func setColumn0Title(headingText: String) {
+        let multipleAttributes: [NSAttributedString.Key : Any] = [
+            //NSAttributedString.Key.foregroundColor: NSColor.black,
+            //NSAttributedString.Key.backgroundColor: NSColor.white,
+            NSAttributedString.Key.strokeWidth: NSNumber(value: -3.0),
+            NSAttributedString.Key.font: NSFont(name: "Helvetica", size: 13.0)! ]
+        let attrString = NSAttributedString(string: headingText, attributes: multipleAttributes)
+        column0.headerCell.attributedStringValue = attrString
+    }
+    
     func addLogItem(_ fileName: String) {
         let formatter = DateFormatter()
         let now = Date()
@@ -121,56 +137,55 @@ class ViewController: NSViewController {
         mySettings.set(theWork.count, forKey: "count")
         mySettings.set(doSubDirectories.state, forKey: "subdirs")
         mySettings.set(tokenField(tokenFilter), forKey: "filter")
+        if FileManager().fileExists(atPath: jsonIO.fullyQualifiedFileName.path) {
+            mySettings.set(jsonIO.fullyQualifiedFileName, forKey: "filename")
+        }
     }
     
     func loadDefaults() {
         let mySettings = UserDefaults.standard
         menuSelect = mySettings.object(forKey: "menuSelect") as? Int ?? 2
         delaySelect.select(delaySelect.menu?.item(at: menuSelect))
+        
         let nameListStore = mySettings.object(forKey: "path")
         nameList = StringArrayToURLArray(strings: nameListStore as? [String] ?? [FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path])
+        nameList = Array(Set(nameList)) // remove duplicates
+        
+        jsonIO.fullyQualifiedFileName = mySettings.url(forKey: "filename") ?? URL(string: "/tmp/dummy.json")!
+        setColumn0Title(headingText: "Directories from " + jsonIO.fullyQualifiedFileName.lastPathComponent)
+        toggleSaveButton()
+                    
         displaySelectedFolders()
+        
         showInfo = mySettings.bool(forKey: "showinformation")
+        
         showInfoBox.state = showInfo == true ? .on : .off
+        
         setInfo()
+        
         theWork.count = mySettings.object(forKey: "count") as? Int ?? 0
+        
         isRunning = mySettings.bool(forKey: "isRunning")
+        
         stopButton.title = "Start"
+        
         doSubDirectories.state = mySettings.object(forKey: "subdirs") as? NSButton.StateValue ?? .off
+        
         let token: [Substring] = mySettings.object(forKey: "filter") as? [Substring] ?? [""]
         tokenFilter.stringValue=token.joined(separator: ",")
-        print("tokenFilter: \(tokenFilter.stringValue)")
         tableView.sortDescriptors = defaultSortDescriptors
         tableView.reloadData()
     }
     
-    var fileName: String {
-        get { return imageDisplayed.stringValue }
-        set { imageDisplayed.stringValue = newValue }
+    func toggleSaveButton() {
+        if FileManager().fileExists(atPath: jsonIO.fullyQualifiedFileName.path) {
+            saveButton.isEnabled = true
+        } else {
+            saveButton.isEnabled = false
+        }
     }
     
-//    func setSortDescriptor() {
-//        let idDescriptor = NSSortDescriptor(key: "header", ascending: true)
-//            tableView.tableColumns[0].sortDescriptorPrototype = idDescriptor
-//    }
-//
-//    func tableView(_ tableView: NSTableView, sortDescriptorsDidChange oldDescriptors: [NSSortDescriptor]) {
-//        guard let sortDescriptor = tableView.sortDescriptors.first else { return }
-//        sortPurchases(ascending: sortDescriptor.ascending)
-//        tableView.reloadData()
-//    }
-//
-//    func sortPurchases(ascending: Bool) {
-//        nameList.sort { (p1, p2) -> Bool in
-//            let id1 = p1.path
-//            let id2 = p2.path
-//            if ascending {
-//                return id1 < id2
-//            } else {
-//                return id2 < id1
-//            }
-//        }
-//    }
+
     
     func displaySelectedFolders() {
         var folder: String = ""
@@ -180,11 +195,7 @@ class ViewController: NSViewController {
         addLogItem(folder)
     }
     
-    override var representedObject: Any? {
-        didSet {
-        // Update the view, if already loaded.
-        }
-    }
+
 
     func getFileName() -> [URL] {
         let dialog = NSOpenPanel();
@@ -216,6 +227,7 @@ class ViewController: NSViewController {
         do {
             if try url.checkResourceIsReachable() {
                 NSWorkspace.shared.activateFileViewerSelecting([url])
+                popoverView.performClose("x")
                 return
             }
         } catch { return }
@@ -284,7 +296,9 @@ class ViewController: NSViewController {
     @IBAction func addRemove(_ sender: Any) {
         if selectedButton.selectedSegment == 0 {
             let newPaths = getFileName()
+            print("newPaths=\(newPaths)")
             nameList = Array(Set(nameList + newPaths))
+            print("namelist= \(nameList)")
             let newSet = getSubDirs2(URLarrayToStringArray(url: newPaths))
             theWork.filelist = Array(Set(theWork.filelist + newSet))
             theWork.filelist.shuffle()
@@ -321,13 +335,27 @@ class ViewController: NSViewController {
     @IBAction func savePaths(_ sender: Any) {
         jsonIO.pathToSave = nameList
         jsonIO.saveDocumentDirectory()
+        toggleSaveButton()
+        setColumn0Title(headingText: "Directories from " + jsonIO.fullyQualifiedFileName.lastPathComponent)
+        popoverView.performClose("x")
+    }
+    
+    @IBAction func saveExisting(_ sender: Any) {
+        jsonIO.pathToSave = nameList
+        jsonIO.saveExisting()
     }
     
     @IBAction func loadPaths(_ sender: Any) {
         let paths = jsonIO.openDocument()
         if !paths.isEmpty {
             nameList = paths
+            setColumn0Title(headingText: "Directories from " + jsonIO.fullyQualifiedFileName.lastPathComponent)
         }
+        toggleSaveButton()
+    }
+    
+    @IBAction func close(_ sender: Any) {
+        popoverView.performClose(sender)
     }
     
     func getSeconds(selection: Int) -> Int {
