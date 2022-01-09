@@ -9,7 +9,7 @@ Inspired by Wally by Antonio Di Monaco
 ## See latest release
 
 **WallHe+**
-Uses depends SwiftImage as we had issues with PNG files. 
+Uses depends SwiftImage to open PNG files. 
 
 ## Building and installation
 
@@ -20,7 +20,13 @@ Uses depends SwiftImage as we had issues with PNG files.
 # FEATURES
 
 Runs as a menu bar application.
-Makes it easy to pick a new folder, pause/start wallpaper rotation or change delay settings.
+Makes it easy to pick a folder(s), pause/start rotation or change delay settings.
+
+Background image loading
+Can select directories with any number of images (limited by available memory). Display starts with small sample while loading of directory completes.
+
+Random order
+Currently only provides random ordering of images.
 
 Updates all windows.
 Multi-monitor set-ups: updates wallpaper on all visible desktops.
@@ -28,13 +34,23 @@ Multi-monitor set-ups: updates wallpaper on all visible desktops.
 Automatically resizes and tiles images.
 No need to manually resize images to your screen size before using them as wallpaper.
 
-Works with all image files supported by MacOS.
-Can have any number of mixed image files in directory.
+Works with all image types supported by MacOS.
+Can have any number of mixed image files in your selected directories.
 
 Log.
 Allows you to see which image was shown and when.
 
-
 # License
 
 WallHe+ is available under the MIT license. See the LICENSE file for more info.
+
+# Revision History
+
+1.0.4
+Added ability to filter folders using tags.
+Fixed problem displaying images consitently.
+Added ability to select more than one folder.
+Added ability to save and load sets of folders.
+
+1.0.0 
+Initial build

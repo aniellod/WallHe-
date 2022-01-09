@@ -11,14 +11,18 @@
 import Cocoa
 
 var vc: ViewController = ViewController()
+var popoverView: NSPopover = NSPopover()
+var logValue: String = ""
 
 @main
 class AppDelegate: NSObject, NSApplicationDelegate {
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    var popoverView: NSPopover = NSPopover()
+    
+    var advancedPopoverView: NSPopover = NSPopover()
     var storyboard: NSStoryboard = NSStoryboard()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        NSApplication.shared.setActivationPolicy(.accessory)
         let itemImage = NSImage(named: "Wallpapers-icon16")
         itemImage?.isTemplate = true
         statusItem.button?.image = itemImage
@@ -29,6 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         vc = (storyboard.instantiateController(withIdentifier: "ViewController") as?
               ViewController)!
         togglePopover(sender: self)
+        hidePopover(self)
     }
 
     @objc func togglePopover(sender: AnyObject) {
@@ -50,7 +55,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
    @objc func showPopover(_ sender: AnyObject) {
         popoverView.contentViewController = vc
-        popoverView.behavior = .transient
+        popoverView.behavior = .applicationDefined
         popoverView.show(relativeTo: statusItem.button!.bounds, of: statusItem.button!, preferredEdge: .maxY)
     }
     
@@ -58,3 +63,4 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             popoverView.performClose(sender)
         }
 }
+
