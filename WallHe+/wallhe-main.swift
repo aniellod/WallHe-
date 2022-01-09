@@ -70,6 +70,18 @@ class thread2 {
         self.thread = Thread()
         self.currentSelection = 0
         self.pressedStop = false
+        
+        NSWorkspace.shared.notificationCenter.addObserver(self,
+                                selector: #selector(spaceChanged),
+                                name: NSWorkspace.activeSpaceDidChangeNotification,
+                                object: nil)
+    }
+    
+    @objc func spaceChanged() {
+            // update wallpaper when user moved to another desktop space
+            DispatchQueue.global().async {
+                setBackground(theURL: previousFileURL.absoluteString)
+            }
     }
     
     var subs: Bool {
@@ -96,6 +108,7 @@ class thread2 {
         get { return currentImageFile }
         set { currentImageFile = newValue }
     }
+    
     
     func addMoreFiles(sourceUrls: [URL], destUrls: [URL]) -> [URL] {
         return Array(Set(sourceUrls + destUrls))
@@ -181,7 +194,6 @@ class thread2 {
 func setBackground(theURL: String) {
     let workspace = NSWorkspace.shared
     let fixedURL = URL(string: theURL)
- //   let dummyURL = URL(string: "file:///Users/dimeglio/Pictures/cosplay-0/test2.jpg")
     var options = [NSWorkspace.DesktopImageOptionKey: Any]()
     options[.imageScaling] = NSImageScaling.scaleProportionallyUpOrDown.rawValue
     options[.allowClipping] = false
@@ -189,47 +201,12 @@ func setBackground(theURL: String) {
     
     for x in theScreens {
         do {
-            // This doesn't work correctly as there are no APIs I know of which can update the wallpaper on all screens and spaces correctly.
-            // Might update one of the screens at least.
-        //    try workspace.setDesktopImageURL(dummyURL!, for: x, options: options)
-        //    sleep(UInt32(0.4))
             try workspace.setDesktopImageURL(fixedURL!, for: x, options: options)
-       //     print("Desktop URL for \(fixedURL!) = \(workspace.desktopImageURL(for: x)!)")
-       //     sleep(UInt32(0.5))
-        //    fixedURL = url2
         } catch {
                 print("\(#function) \(#line): Unable to update wallpaper!")
                 vc.addLogItem("[\(#function) \(#line): unable to update wallpaper!]")
         }
     }
-}
-
-// fileName: returns one of two filename to use. This is a really silly hack as MacOS doesn't update the wallpaper otherwise.
-// MacOS needs to reload the wallpaper file and it seems to only work if we switch file names as otherwise MacOS will not update the wallpaper. :/
-func fileName() -> String {
-    var fileName = "wallhe-wallpaper1.png"
-    let path = NSSearchPathForDirectoriesInDomains(.picturesDirectory, .userDomainMask, true)[0] as String
-    let url = NSURL(fileURLWithPath: path)
-    if let pathComponent = url.appendingPathComponent(fileName) {
-        let filePath = pathComponent.path
-        let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: filePath) {
-            fileName = "wallhe-wallpaper2.png"
-            let deleted = FileManager()
-            do {
-                let fileToDeleteURL = url.appendingPathComponent("wallhe-wallpaper1.png")
-                try deleted.removeItem(at: fileToDeleteURL!)
-               } catch { return fileName }
-        } else {
-            fileName = "wallhe-wallpaper1.png"
-            do {
-                let deleted = FileManager()
-                let fileToDeleteURL = url.appendingPathComponent("wallhe-wallpaper2.png")
-                try deleted.removeItem(at: fileToDeleteURL!)
-            } catch { return fileName }
-        }
-    }
-    return fileName
 }
 
 // buildWallpaper: input is the image; output is the tiled wallpaper ready to go.
@@ -331,42 +308,6 @@ func resizedImage(at url: URL, for size: CGSize) -> NSImage? {
                        size: CGSize(width: size.width,height: size.height))
     }
 }
-
-// updateWallpaper: main function
-// updateWallpaper: input path to image and check the image, resize, tile, and update the wallpaper.
-//func updateWallpaper(name: String) {
-//    if name.isEmpty { return } // exit if no name was provided
-//    let desktopURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first! // where to store tmp image file.
-//    let destinationURL: URL = desktopURL.appendingPathComponent(fileName())
-//
-//    let fullPath = name
-//    let theURL = URL(fileURLWithPath: fullPath)
-//    let origImage = NSImage(contentsOf: theURL)
-//    guard let height = origImage?.size.height else {
-//        print("[\(#function) \(#line): Error in calculating height of image at \(fullPath)")
-//        DispatchQueue.main.async { vc.addLogItem("[\(#function) \(#line): unable to process image \(fullPath). Check path.]")
-//        }
-//        return
-//    }
-//    let ratio = NSScreen.screenHeight! / height
-//    let newWidth = (origImage!.size.width) * ratio
-//
-//    guard let newImage = resizedImage(at: theURL, for: CGSize(width: newWidth, height: NSScreen.screenHeight!))
-//    else {
-//        print("[\(#function) \(#line): Error \(theURL) cannot be opened.")
-//        return
-//    }
-//
-//    let finalImage = buildWallpaper(sample: newImage, text: fullPath) // tiles and resizes newImage
-//
-//    guard finalImage.pngWrite(to: destinationURL) else {
-//        print("File count not be saved")
-//        DispatchQueue.main.async {  vc.addLogItem("[\(#function) \(#line): unable to save wallpaper]")
-//        }
-//        return
-//    }
-//    setBackground(theURL: (destinationURL.absoluteString))
-//}
 
 // updateWallpaper: main function
 // updateWallpaper: input path to image and check the image, resize, tile, and update the wallpaper.
@@ -479,7 +420,6 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
                         continue } // skip this image
                 } catch { print(error) }
                 theFilelist.append(name.path)
-                
             }
         }
         

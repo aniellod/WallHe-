@@ -185,8 +185,6 @@ class ViewController: NSViewController {
         }
     }
     
-
-    
     func displaySelectedFolders() {
         var folder: String = ""
         for path in nameList {
@@ -195,8 +193,6 @@ class ViewController: NSViewController {
         addLogItem(folder)
     }
     
-
-
     func getFileName() -> [URL] {
         let dialog = NSOpenPanel();
         dialog.title                   = "Choose folder";
@@ -247,6 +243,10 @@ class ViewController: NSViewController {
     }
     
     @IBAction func exitApp(_ sender: Any) {
+        do {
+            let fileToDeleteURL = previousFileURL
+            try FileManager().removeItem(at: fileToDeleteURL)
+        } catch { print("Error: \(error.localizedDescription) @ \(previousFileURL)") }
         theWork.stop()
         stopAnimation()
         saveDefaults()
