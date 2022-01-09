@@ -34,20 +34,23 @@ Multi-monitor set-ups: updates wallpaper on all visible desktops.
 Automatically resizes and tiles images.
 No need to manually resize images to your screen size before using them as wallpaper.
 
-Works with all image files supported by MacOS.
+Works with all image types supported by MacOS.
 Can have any number of mixed image files in your selected directories.
 
 Log.
 Allows you to see which image was shown and when.
 
-
 # License
 
 WallHe+ is available under the MIT license. See the LICENSE file for more info.
 
-# TO DO
+# Revision History
 
-Remove dependency on SwiftImage.
-Use label to skip folder from being selected.
-Use of arbitrary filters to prevent items from being selected.
-Select images from URL.
+1.0.4
+Added ability to filter folders using tags.
+Fixed problem displaying images consitently.
+Added ability to select more than one folder.
+Added ability to save and load sets of folders.
+
+1.0.0 
+Initial build
