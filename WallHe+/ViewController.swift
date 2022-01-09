@@ -41,7 +41,6 @@ class ViewController: NSViewController {
     override var representedObject: Any? {
         didSet {
         // Update the view, if already loaded.
-            print("Testing what this does.")
         }
     }
     
@@ -74,7 +73,7 @@ class ViewController: NSViewController {
             showInfo = true
             theWork.showInfo = true
         }
-        updateWallpaper(name: theWork.imageFile)
+        updateWallpaper(fullPathToImage: theWork.imageFile)
     }
     
     override func viewDidLoad() {

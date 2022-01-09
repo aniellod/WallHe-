@@ -10,6 +10,7 @@
 //  Inspired by Wally by Antonio Di Monaco
 //
 //  Warning - very buggy and little error checking. Unapologetic cargo culting...
+//  Warning - Aiming for MVP not perfection.
 //
 //
 //  Requirements:
@@ -18,7 +19,7 @@
 //
 //  Very basic wallpaper controler for MacOS 10.15+
 //
-//  Specify image folder and delay, Wallhe will randomly pick an image, resize/tile it to fit all visible desktops then loop through all images. Control-C to exit.
+//  Specify image folder and delay, Wallhe will randomly pick an image, resize/tile it to fit all visible desktops then loop through all images.
 
 //  Copyright (C) 2021 Aniello Di Meglio
 //
@@ -26,22 +27,7 @@
 
 import Foundation
 import SwiftUI
-import CoreGraphics
 import SwiftImage // https://github.com/koher/swift-image.git
-import UniformTypeIdentifiers
-
-extension String {
-    func slash() -> String {
-        return self.last != "/" ? self + "/" : self
-    }
-
-    static func ~= (lhs: String, rhs: String) -> Bool {
-        guard let regex = try? NSRegularExpression(pattern: rhs) else { return false }
-        let range = NSRange(location: 0, length: lhs.utf16.count)
-        return regex.firstMatch(in: lhs, options: [], range: range) != nil
-    }
-}
-
 
 let theWork = thread2()
 var errCounter: Int = 0
@@ -75,6 +61,11 @@ class thread2 {
                                 selector: #selector(spaceChanged),
                                 name: NSWorkspace.activeSpaceDidChangeNotification,
                                 object: nil)
+        
+        temporaryDirectoryURL.appendPathComponent("com.dimeglio.wallheplus")
+        do {
+            try FileManager().createDirectory(at: temporaryDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+        } catch { errorMessage("Unable to create temporary directory.") }
     }
     
     @objc func spaceChanged() {
@@ -109,7 +100,9 @@ class thread2 {
         set { currentImageFile = newValue }
     }
     
-    
+    var temporaryDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory(),
+                                        isDirectory: true)
+
     func addMoreFiles(sourceUrls: [URL], destUrls: [URL]) -> [URL] {
         return Array(Set(sourceUrls + destUrls))
     }
@@ -169,7 +162,7 @@ class thread2 {
                 vc.fileName = self.filelist[i]
             }
             autoreleasepool { // needed to avoid memory leaks.
-                updateWallpaper(name: filelist[i])
+                updateWallpaper(fullPathToImage: filelist[i])
                 currentSelection = i
             }
             for _ in 1..<seconds { // checks for cancellation every second
@@ -249,34 +242,6 @@ func buildWallpaper(sample: NSImage, text: String...) -> NSImage {
     return resultImage
 }
 
-// extention to NSScreen to provide easy access screen to dimenstions
-extension NSScreen{
-    static let screenWidth = NSScreen.main?.frame.width
-    static let screenHeight = NSScreen.main?.frame.height
-    static let screenSize = NSScreen.main?.frame.size
-}
-
-// extension to NSImage to write PNG formatted images for the wallpaper
-extension NSImage {
-    var pngData: Data? {
-        guard   let tiffRepresentation = tiffRepresentation,
-                let bitmapImage = NSBitmapImageRep(data: tiffRepresentation)
-        else { return nil }
-        return bitmapImage.representation(using: .png, properties: [:])
-    }
-    func pngWrite(to url: URL, options: Data.WritingOptions = .atomic) -> Bool {
-        autoreleasepool {
-            do {
-                try pngData?.write(to: url, options: options)
-                return true
-            } catch {
-                print(error)
-            return false
-            }
-        }
-    }
-}
-
 // resizedImage: input = URL of input image; size = new size of image; output = new resized image
 func resizedImage(at url: URL, for size: CGSize) -> NSImage? {
     if url.path.lowercased().contains(".png") {
@@ -311,23 +276,24 @@ func resizedImage(at url: URL, for size: CGSize) -> NSImage? {
 
 // updateWallpaper: main function
 // updateWallpaper: input path to image and check the image, resize, tile, and update the wallpaper.
-func updateWallpaper(name: String) {
-    if name.isEmpty { return } // exit if no name was provided
-    let desktopURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first! // where to store tmp image file.
-    let destinationURL: URL = desktopURL.appendingPathComponent(URL(string: name)!.lastPathComponent)
+func updateWallpaper(fullPathToImage: String) {
+    if fullPathToImage.isEmpty { return } // exit if no name was provided
+  //  let desktopURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first! // where to store tmp image file.
+    let desktopURL = theWork.temporaryDirectoryURL  // where to store tmp image file.
+    let destinationURL: URL = desktopURL.appendingPathComponent(URL(string: fullPathToImage)!.lastPathComponent)
     
     do {
         let fileToDeleteURL = previousFileURL
         try FileManager().removeItem(at: fileToDeleteURL)
-    } catch { print("Error: \(error.localizedDescription) @ \(previousFileURL)") }
+    } catch { vc.addLogItem("[\(#function) \(#line): \(error.localizedDescription) @ \(previousFileURL)") }
     
     previousFileURL = destinationURL
-    let fullPath = name
-    let theURL = URL(fileURLWithPath: fullPath)
+    let theURL = URL(fileURLWithPath: fullPathToImage)
     let origImage = NSImage(contentsOf: theURL)
     guard let height = origImage?.size.height else {
-        print("[\(#function) \(#line): Error in calculating height of image at \(fullPath)")
-        DispatchQueue.main.async { vc.addLogItem("[\(#function) \(#line): unable to process image \(fullPath). Check path.]")
+        print("[\(#function) \(#line): Error in calculating height of image at \(fullPathToImage)")
+        DispatchQueue.main.async {
+            vc.addLogItem("[\(#function) \(#line): unable to process image \(fullPathToImage). Check path.]")
         }
         return
     }
@@ -340,11 +306,12 @@ func updateWallpaper(name: String) {
         return
     }
 
-    let finalImage = buildWallpaper(sample: newImage, text: fullPath) // tiles and resizes newImage
+    let finalImage = buildWallpaper(sample: newImage, text: fullPathToImage) // tiles and resizes newImage
     
     guard finalImage.pngWrite(to: destinationURL) else {
         print("File count not be saved")
-        DispatchQueue.main.async {  vc.addLogItem("[\(#function) \(#line): unable to save wallpaper]")
+        DispatchQueue.main.async {
+            vc.addLogItem("[\(#function) \(#line): unable to save wallpaper]")
         }
         return
     }

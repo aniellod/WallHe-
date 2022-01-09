@@ -33,6 +33,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         vc = (storyboard.instantiateController(withIdentifier: "ViewController") as?
               ViewController)!
         togglePopover(sender: self)
+        hidePopover(self)
     }
 
     @objc func togglePopover(sender: AnyObject) {
