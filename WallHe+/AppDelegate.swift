@@ -22,6 +22,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var storyboard: NSStoryboard = NSStoryboard()
 
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        NSApplication.shared.setActivationPolicy(.accessory)
         let itemImage = NSImage(named: "Wallpapers-icon16")
         itemImage?.isTemplate = true
         statusItem.button?.image = itemImage

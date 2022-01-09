@@ -285,6 +285,7 @@ class ViewController: NSViewController {
             isRunning = false
         }
         saveDefaults()
+        popoverView.performClose("x")
     }
     
     @IBAction func selectDelay(_ sender: Any) {
@@ -346,6 +347,7 @@ class ViewController: NSViewController {
     }
     
     @IBAction func loadPaths(_ sender: Any) {
+        popoverView.performClose("x")
         let paths = jsonIO.openDocument()
         if !paths.isEmpty {
             nameList = paths
