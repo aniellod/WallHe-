@@ -68,12 +68,12 @@ class ViewController: NSViewController {
     func setInfo() {
         if showInfoBox.state == .off {
             showInfo = false
-            theWork.showInfo = false
+            wallHeInstance.showInfo = false
         } else {
             showInfo = true
-            theWork.showInfo = true
+            wallHeInstance.showInfo = true
         }
-        updateWallpaper(fullPathToImage: theWork.imageFile)
+        updateWallpaper(fullPathToImage: wallHeInstance.imageFile)
     }
     
     override func viewDidLoad() {
@@ -101,9 +101,9 @@ class ViewController: NSViewController {
             stopButton.isEnabled = true
             skipButton.isEnabled = true
             setUp(secondsDelay: delay, paths: nameList, subs: (doSubDirectories.state == .on ? true : false))
-            okButton.isEnabled = false
+            okButton.isEnabled = true
             stopButton.title = "Stop"
-            theWork.start()
+            wallHeInstance.start()
         }
     }
     
@@ -133,7 +133,7 @@ class ViewController: NSViewController {
         mySettings.set(nameListStore, forKey: "path")
         mySettings.set(showInfo, forKey: "showinformation")
         mySettings.set(isRunning, forKey: "isRunning")
-        mySettings.set(theWork.count, forKey: "count")
+        mySettings.set(wallHeInstance.count, forKey: "count")
         mySettings.set(doSubDirectories.state, forKey: "subdirs")
         mySettings.set(tokenField(tokenFilter), forKey: "filter")
         if FileManager().fileExists(atPath: jsonIO.fullyQualifiedFileName.path) {
@@ -150,7 +150,11 @@ class ViewController: NSViewController {
         nameList = StringArrayToURLArray(strings: nameListStore as? [String] ?? [FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first!.path])
         nameList = Array(Set(nameList)) // remove duplicates
         
+        
         jsonIO.fullyQualifiedFileName = mySettings.url(forKey: "filename") ?? URL(string: "/tmp/dummy.json")!
+        
+      //  print("\(#line): nameList=\(nameList)  namelistStore=\(nameListStore ?? "Empty") filename=\(jsonIO.fullyQualifiedFileName)")
+        
         setColumn0Title(headingText: "Directories from " + jsonIO.fullyQualifiedFileName.lastPathComponent)
         toggleSaveButton()
                     
@@ -162,7 +166,7 @@ class ViewController: NSViewController {
         
         setInfo()
         
-        theWork.count = mySettings.object(forKey: "count") as? Int ?? 0
+        wallHeInstance.count = mySettings.object(forKey: "count") as? Int ?? 0
         
         isRunning = mySettings.bool(forKey: "isRunning")
         
@@ -217,8 +221,8 @@ class ViewController: NSViewController {
     }
     
     @IBAction func showInFinder(_ sender: Any) {
-        if theWork.filelist.count > 0 {
-        let url = URL(fileURLWithPath: theWork.filelist[theWork.currentSelection])
+        if wallHeInstance.filelist.count > 0 {
+        let url = URL(fileURLWithPath: wallHeInstance.filelist[wallHeInstance.currentSelection])
         do {
             if try url.checkResourceIsReachable() {
                 NSWorkspace.shared.activateFileViewerSelecting([url])
@@ -233,7 +237,7 @@ class ViewController: NSViewController {
         for value in tokenField(tokenFilter) ?? [""] {
             print(value)
         }
-        theWork.pressedStop = false
+        wallHeInstance.pressedStop = false
         errCounter = 0
         stopButton.isEnabled = true
         skipButton.isEnabled = true
@@ -242,11 +246,13 @@ class ViewController: NSViewController {
     }
     
     @IBAction func exitApp(_ sender: Any) {
-        do {
-            let fileToDeleteURL = previousFileURL
-            try FileManager().removeItem(at: fileToDeleteURL)
-        } catch { print("Error: \(error.localizedDescription) @ \(previousFileURL)") }
-        theWork.stop()
+        if previousFileURL != nil {
+            do {
+                let fileToDeleteURL = previousFileURL
+                try FileManager().removeItem(at: fileToDeleteURL!)
+            } catch { print("Error: \(error.localizedDescription) @ \(String(describing: previousFileURL))") }
+        }
+        wallHeInstance.stop()
         stopAnimation()
         saveDefaults()
         exit(0)
@@ -263,15 +269,15 @@ class ViewController: NSViewController {
             okButton.isEnabled = true
             stopButton.title = "Start"
             skipButton.isEnabled = false
-            theWork.pressedStop = true
+            wallHeInstance.pressedStop = true
             isRunning = false
-            theWork.stop()
+            wallHeInstance.stop()
         } else {
             okButton.isEnabled = false
             stopButton.title = "Stop"
             skipButton.isEnabled = true
-            theWork.start()
-            theWork.pressedStop = false
+            wallHeInstance.start()
+            wallHeInstance.pressedStop = false
             isRunning = true
         }
 
@@ -280,7 +286,7 @@ class ViewController: NSViewController {
             stopButton.title = "Start"
             stopButton.isEnabled = false
             skipButton.isEnabled = false
-            theWork.stop()
+            wallHeInstance.stop()
             isRunning = false
         }
         saveDefaults()
@@ -289,26 +295,26 @@ class ViewController: NSViewController {
     
     @IBAction func selectDelay(_ sender: Any) {
         self.delay = getSeconds(selection: delaySelect.indexOfSelectedItem)
-        theWork.seconds = UInt32(self.delay)
+        wallHeInstance.seconds = UInt32(self.delay)
         saveDefaults()
     }
     
     @IBAction func addRemove(_ sender: Any) {
         if selectedButton.selectedSegment == 0 {
             let newPaths = getFileName()
-            print("newPaths=\(newPaths)")
+            print("\(#line): newPaths=\(newPaths)")
             nameList = Array(Set(nameList + newPaths))
-            print("namelist= \(nameList)")
+            print("\(#line): namelist= \(nameList)")
             let newSet = getSubDirs2(URLarrayToStringArray(url: newPaths))
-            theWork.filelist = Array(Set(theWork.filelist + newSet))
-            theWork.filelist.shuffle()
+            wallHeInstance.filelist = Array(Set(wallHeInstance.filelist + newSet))
+            wallHeInstance.filelist.shuffle()
         }
         if selectedButton.selectedSegment == 1 {
             if tableView.numberOfRows > 0 && tableView.selectedRow > -1 {
                 //  https://stackoverflow.com/questions/59868180/swiftui-indexset-to-index-in-array
                 tableView.selectedRowIndexes.sorted(by: > ).forEach { (i) in
-                    theWork.filelist = theWork.removeFiles(sourcePaths: theWork.filelist, theURL: nameList[i].path)
-                    print("size of filelist = \(theWork.filelist.count) to Remove = \(nameList[i].path)")
+                    wallHeInstance.filelist = wallHeInstance.removeFiles(sourcePaths: wallHeInstance.filelist, theURL: nameList[i].path)
+                    print("\(#line): size of filelist = \(wallHeInstance.filelist.count) to Remove = \(nameList[i].path)")
                     nameList.remove(at: i)
                 }
             }
@@ -326,8 +332,11 @@ class ViewController: NSViewController {
     
     func StringArrayToURLArray(strings: [String]) -> [URL] {
         var URLArray:[URL] = []
+        let uc = NSURLComponents()
         for i in strings {
-            URLArray.append(URL(string: i)!)
+            uc.path = i
+        //    print("URL = \(uc.url!.absoluteString)")
+            URLArray.append(URL(string: uc.url!.absoluteString)!)
         }
         return URLArray
     }
@@ -346,13 +355,13 @@ class ViewController: NSViewController {
     }
     
     @IBAction func loadPaths(_ sender: Any) {
-        popoverView.performClose("x")
         let paths = jsonIO.openDocument()
         if !paths.isEmpty {
             nameList = paths
             setColumn0Title(headingText: "Directories from " + jsonIO.fullyQualifiedFileName.lastPathComponent)
         }
         toggleSaveButton()
+        popoverView.performClose("x")
     }
     
     @IBAction func close(_ sender: Any) {
@@ -383,7 +392,7 @@ class ViewController: NSViewController {
     }
     
     @IBAction func nextImage(_ sender: NSButton) {
-        theWork.skip()
+        wallHeInstance.skip()
     }
     
     func startAnimation() {

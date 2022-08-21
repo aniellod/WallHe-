@@ -850,7 +850,7 @@ DQ
                                     <rect key="frame" x="2" y="2" width="383" height="164"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <tableView verticalHuggingPriority="750" tableStyle="fullWidth" columnReordering="NO" columnResizing="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" headerView="MZO-RB-s70" viewBased="YES" id="iCZ-fg-f3f">
+                                        <tableView verticalHuggingPriority="750" tableStyle="fullWidth" columnReordering="NO" autosaveColumns="NO" rowHeight="24" rowSizeStyle="automatic" headerView="MZO-RB-s70" viewBased="YES" id="iCZ-fg-f3f">
                                             <rect key="frame" x="0.0" y="0.0" width="383" height="136"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <size key="intercellSpacing" width="17" height="0.0"/>
@@ -872,11 +872,11 @@ DQ
                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                     <prototypeCellViews>
                                                         <tableCellView id="vrB-mO-H7i">
-                                                            <rect key="frame" x="8" y="0.0" width="366" height="24"/>
+                                                            <rect key="frame" x="8" y="0.0" width="520" height="24"/>
                                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                             <subviews>
                                                                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" horizontalCompressionResistancePriority="250" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="KaN-5F-vYg">
-                                                                    <rect key="frame" x="0.0" y="4" width="366" height="16"/>
+                                                                    <rect key="frame" x="0.0" y="4" width="603" height="16"/>
                                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES" flexibleMaxY="YES"/>
                                                                     <textFieldCell key="cell" controlSize="small" scrollable="YES" lineBreakMode="clipping" sendsActionOnEndEditing="YES" alignment="left" title="Table View Cell" id="KNX-PY-OY3">
                                                                         <font key="font" metaFont="system"/>
@@ -1093,7 +1093,7 @@ DQ
                                 <textFieldCell key="cell" lineBreakMode="truncatingTail" allowsUndo="NO" alignment="center" id="Q9L-S9-wCY">
                                     <font key="font" metaFont="system"/>
                                     <string key="title">WallHe+ ©2021 Aniello Di Meglio
-MIT License - v1.0.4</string>
+MIT License - v1.0.5</string>
                                     <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>

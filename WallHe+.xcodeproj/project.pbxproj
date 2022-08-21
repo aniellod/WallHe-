@@ -13,6 +13,7 @@
 		34689DD4273DB5B7004BB649 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 34689DD2273DB5B7004BB649 /* Main.storyboard */; };
 		34689DDD273DDC4A004BB649 /* wallhe-main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34689DDC273DDC4A004BB649 /* wallhe-main.swift */; };
 		34689DE3273DDFCB004BB649 /* SwiftImage in Frameworks */ = {isa = PBXBuildFile; productRef = 34689DE2273DDFCB004BB649 /* SwiftImage */; };
+		34936397278C3D8500A13759 /* jsonIO.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34936396278C3D8500A13759 /* jsonIO.swift */; };
 		34A37051278B2FDA003D6FBB /* extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34A37050278B2FDA003D6FBB /* extensions.swift */; };
 		34B50D24275D6D01007BEBD9 /* AdvancedViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34B50D23275D6D01007BEBD9 /* AdvancedViewController.swift */; };
 		34B7D836274BCF9000531503 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 34B7D835274BCF9000531503 /* README.md */; };
@@ -30,6 +31,7 @@
 		34689DDC273DDC4A004BB649 /* wallhe-main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "wallhe-main.swift"; sourceTree = "<group>"; };
 		3482A7B52745C7290021EDF3 /* fr-CA */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "fr-CA"; path = "fr-CA.lproj/Main.strings"; sourceTree = "<group>"; };
 		3482A7B92745CEAC0021EDF3 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Main.strings; sourceTree = "<group>"; };
+		34936396278C3D8500A13759 /* jsonIO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = jsonIO.swift; sourceTree = "<group>"; };
 		34A37050278B2FDA003D6FBB /* extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extensions.swift; sourceTree = "<group>"; };
 		34B50D23275D6D01007BEBD9 /* AdvancedViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancedViewController.swift; sourceTree = "<group>"; };
 		34B7D835274BCF9000531503 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
@@ -70,6 +72,7 @@
 			isa = PBXGroup;
 			children = (
 				34689DDB273DD464004BB649 /* WallHe--Info.plist */,
+				34936396278C3D8500A13759 /* jsonIO.swift */,
 				34689DCC273DB5B5004BB649 /* AppDelegate.swift */,
 				34A37050278B2FDA003D6FBB /* extensions.swift */,
 				34689DCE273DB5B5004BB649 /* ViewController.swift */,
@@ -164,6 +167,7 @@
 				34A37051278B2FDA003D6FBB /* extensions.swift in Sources */,
 				34689DCF273DB5B5004BB649 /* ViewController.swift in Sources */,
 				34689DDD273DDC4A004BB649 /* wallhe-main.swift in Sources */,
+				34936397278C3D8500A13759 /* jsonIO.swift in Sources */,
 				34689DCD273DB5B5004BB649 /* AppDelegate.swift in Sources */,
 				34B50D24275D6D01007BEBD9 /* AdvancedViewController.swift in Sources */,
 			);
@@ -320,14 +324,16 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1.0.4;
+				CURRENT_PROJECT_VERSION = 1.0.5;
 				DEVELOPMENT_TEAM = D2GFG34LMB;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "WallHe--Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -351,14 +357,16 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1.0.4;
+				CURRENT_PROJECT_VERSION = 1.0.5;
 				DEVELOPMENT_TEAM = D2GFG34LMB;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "WallHe--Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_NSMainStoryboardFile = Main;
 				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				INFOPLIST_KEY_UIMainStoryboardFile = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

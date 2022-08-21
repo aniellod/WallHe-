@@ -9,8 +9,7 @@
 //  Parts were converted to Swift 5.5 from Objective-C by Swiftify v5.5.22755 - https://swiftify.com/
 //  Inspired by Wally by Antonio Di Monaco
 //
-//  Warning - very buggy and little error checking. Unapologetic cargo culting...
-//  Warning - Aiming for MVP not perfection.
+//  Warning - very buggy and little error checking. 
 //
 //
 //  Requirements:
@@ -26,14 +25,14 @@
 //  MIT License
 
 import Foundation
-import SwiftUI
+import Cocoa
 import SwiftImage // https://github.com/koher/swift-image.git
 
-let theWork = thread2()
+let wallHeInstance = wallhe()
 var errCounter: Int = 0
-var previousFileURL: URL = URL(string: "http://dummy.url")!
+var previousFileURL: URL? = nil //URL(string: "http://dummy.url")!
 
-class thread2 {
+class wallhe {
     var filelist: Array<String>
     var seconds: UInt32
     var currentImageFile: String
@@ -70,9 +69,11 @@ class thread2 {
     
     @objc func spaceChanged() {
             // update wallpaper when user moved to another desktop space
+        if previousFileURL?.absoluteString != nil {
             DispatchQueue.global().async {
-                setBackground(theURL: previousFileURL.absoluteString)
+                setBackground(theURL: previousFileURL!.absoluteString)
             }
+        }
     }
     
     var subs: Bool {
@@ -204,7 +205,7 @@ func setBackground(theURL: String) {
 
 // buildWallpaper: input is the image; output is the tiled wallpaper ready to go.
 func buildWallpaper(sample: NSImage, text: String...) -> NSImage {
-    let textFont = NSFont(name: "Helvetica Bold", size: 18)!
+    let textFont = NSFont(name: "Helvetica Bold", size: 24)!
     let textFontAttributes = [
         NSAttributedString.Key.font: textFont,
         NSAttributedString.Key.shadow: NSShadow(),
@@ -212,8 +213,8 @@ func buildWallpaper(sample: NSImage, text: String...) -> NSImage {
         NSAttributedString.Key.backgroundColor: NSColor.black
     ]
     
-    var drawText=NSString(string: text[0])
-    if !theWork.showInfo {
+    var drawText=NSString(string: text[0]).lastPathComponent
+    if !wallHeInstance.showInfo {
         drawText = ""
     }
     
@@ -236,7 +237,7 @@ func buildWallpaper(sample: NSImage, text: String...) -> NSImage {
                     from: NSRect(x: 0, y:0, width: (sw - sample.size.width * 2), height: sh),
                     operation: NSCompositingOperation.sourceOver, fraction: 1.0)
     }
-    drawText.draw(at: NSPoint(x: 20, y: sh - 60), withAttributes: textFontAttributes)
+    drawText.draw(at: NSPoint(x: 20, y: sh - 80), withAttributes: textFontAttributes)
     resultImage.unlockFocus()
     
     return resultImage
@@ -278,14 +279,18 @@ func resizedImage(at url: URL, for size: CGSize) -> NSImage? {
 // updateWallpaper: input path to image and check the image, resize, tile, and update the wallpaper.
 func updateWallpaper(fullPathToImage: String) {
     if fullPathToImage.isEmpty { return } // exit if no name was provided
-  //  let desktopURL = FileManager.default.urls(for: .picturesDirectory, in: .userDomainMask).first! // where to store tmp image file.
-    let desktopURL = theWork.temporaryDirectoryURL  // where to store tmp image file.
-    let destinationURL: URL = desktopURL.appendingPathComponent(URL(string: fullPathToImage)!.lastPathComponent)
+    let desktopURL = wallHeInstance.temporaryDirectoryURL  // where to store tmp image file.
+    var destinationURL: URL = URL(string: "/")!
+    if URL(string: fullPathToImage)?.lastPathComponent != nil {
+        destinationURL = desktopURL.appendingPathComponent(URL(string: fullPathToImage)!.lastPathComponent)
+    } else { return }
     
-    do {
-        let fileToDeleteURL = previousFileURL
-        try FileManager().removeItem(at: fileToDeleteURL)
-    } catch { vc.addLogItem("[\(#function) \(#line): \(error.localizedDescription) @ \(previousFileURL)") }
+    if previousFileURL != nil {
+         do {
+             let fileToDeleteURL = previousFileURL!
+            try FileManager().removeItem(at: fileToDeleteURL)
+         } catch { vc.addLogItem("[\(#function) \(#line): \(error.localizedDescription) @ \(String(describing: previousFileURL))") }
+    }
     
     previousFileURL = destinationURL
     let theURL = URL(fileURLWithPath: fullPathToImage)
@@ -319,15 +324,15 @@ func updateWallpaper(fullPathToImage: String) {
 }
 
 func setUp(secondsDelay: Int, paths: [URL], subs: Bool) {
-    theWork.subs = subs
+    wallHeInstance.subs = subs
     let seconds: UInt32 = UInt32(abs(Int(exactly: secondsDelay)!))
-    theWork.delay = seconds
-    theWork.directory = []
+    wallHeInstance.delay = seconds
+    wallHeInstance.directory = []
     for i in paths {
-        theWork.directory.append(i.path)
+        wallHeInstance.directory.append(i.path)
         print ("path = \(i.path)")
     }
-    theWork.load()
+    wallHeInstance.load()
 }
 
 func buildFileList(_ pathsToSearch: [String]) -> Array<String> {
@@ -336,8 +341,8 @@ func buildFileList(_ pathsToSearch: [String]) -> Array<String> {
     
     if theFilelist.count == 0 {
         vc.stop("_Any_")
-        theWork.stop()
-        theWork.errorMessage("[\(#function) \(#line): Error: No images found in directory \(pathsToSearch)")
+        wallHeInstance.stop()
+        wallHeInstance.errorMessage("[\(#function) \(#line): Error: No images found in directory \(pathsToSearch)")
     }
     return theFilelist
 }
@@ -349,7 +354,7 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
     var subFolders: Array<String>! = []
     
     let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey, .localizedLabelKey, .tagNamesKey])
-    let options: FileManager.DirectoryEnumerationOptions = theWork.subs == true
+    let options: FileManager.DirectoryEnumerationOptions = wallHeInstance.subs == true
                     ? [.skipsHiddenFiles]
                     : [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
     var enumerator = FileManager.DirectoryEnumerator()
@@ -380,7 +385,7 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
             enumerator = filemgr.enumerator(at: URL(fileURLWithPath: pathToSearch), includingPropertiesForKeys: Array(resourceKeys), options: options)!
             DispatchQueue.main.async {  vc.startAnimation() }
             for case let name as URL in enumerator {
-                if (theWork.pressedStop) { break }
+                if (wallHeInstance.pressedStop) { break }
                 do {
                     let properties = try name.resourceValues(forKeys: resourceKeys)
                     if ((properties.tagNames?.description.lowercased().contains("private")) ?? false ) {
@@ -391,9 +396,11 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
         }
         
         print(theFilelist.count)
-        for badone in [".mp4", ".log", ".csv", ".mov", ".avi"] {
-            theFilelist = theFilelist.filter{ !($0.lowercased().contains(badone.lowercased())) }
+        for filter in [".mp4", ".log", ".csv", ".mov", ".avi"] {
+            print("filtering \(filter)")
+            theFilelist = theFilelist.filter{ !($0.lowercased().contains(filter.lowercased())) }
         }
+        print(theFilelist.count)
 
         for filter in tokens {
             print("filtering \(filter)")
@@ -403,7 +410,7 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
         
         if theFilelist.count > 10000 {  // grab 10000 random images
             for _ in 1..<theFilelist.count-10000 {
-                if (theWork.pressedStop) { theWork.pressedStop = false; break }
+                if (wallHeInstance.pressedStop) { wallHeInstance.pressedStop = false; break }
                 theFilelist.remove(at: Int.random(in: 0..<theFilelist.count))
             }
         }
@@ -416,10 +423,10 @@ func getSubDirs(_ pathsToSearch: [String]) -> Array<String> { // Specify the roo
                     subFolders.append(name)
                 } else { print("Is not an image: \(name)") }
             }
-            if index % 500 == 0 { theWork.fileList = subFolders.shuffled() }
-            if (theWork.pressedStop) { theWork.pressedStop = false; break }
+            if index % 500 == 0 { wallHeInstance.fileList = subFolders.shuffled() }
+            if (wallHeInstance.pressedStop) { wallHeInstance.pressedStop = false; break }
         }
-        theWork.fileList = subFolders.shuffled()
+        wallHeInstance.fileList = subFolders.shuffled()
         DispatchQueue.main.async { vc.stopAnimation() }
     }
     return subFolders ?? ["/"]
@@ -432,7 +439,7 @@ func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the ro
     var subFolders: Array<String>! = []
     
     let resourceKeys = Set<URLResourceKey>([.nameKey, .isDirectoryKey, .localizedLabelKey, .tagNamesKey])
-    let options: FileManager.DirectoryEnumerationOptions = theWork.subs == true
+    let options: FileManager.DirectoryEnumerationOptions = wallHeInstance.subs == true
                     ? [.skipsHiddenFiles]
                     : [.skipsHiddenFiles, .skipsSubdirectoryDescendants]
     var enumerator = FileManager.DirectoryEnumerator()
@@ -463,7 +470,7 @@ func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the ro
             enumerator = filemgr.enumerator(at: URL(fileURLWithPath: pathToSearch), includingPropertiesForKeys: Array(resourceKeys), options: options)!
             DispatchQueue.main.async {  vc.startAnimation() }
             for case let name as URL in enumerator {
-                if (theWork.pressedStop) { break }
+                if (wallHeInstance.pressedStop) { break }
                 do {
                     let properties = try name.resourceValues(forKeys: resourceKeys)
                     if ((properties.tagNames?.description.lowercased().contains("private")) ?? false ) {
@@ -475,10 +482,12 @@ func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the ro
         }
         
         print(theFilelist.count)
-        for badone in [".mp4", ".log", ".csv", ".mov", ".avi"] {
-            theFilelist = theFilelist.filter{ !($0.lowercased().contains(badone.lowercased())) }
+        for filter in [".mp4", ".log", ".csv", ".mov", ".avi"] {
+            print("filtering \(filter)")
+            theFilelist = theFilelist.filter{ !($0.lowercased().contains(filter.lowercased())) }
         }
-
+        print(theFilelist.count)
+        
         for filter in tokens {
             print("filtering \(filter)")
             theFilelist = theFilelist.filter{ !($0.lowercased()).contains(filter.lowercased()) }
@@ -487,7 +496,7 @@ func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the ro
         
         if theFilelist.count > 10000 {  // grab 10000 random images
             for _ in 1..<theFilelist.count-10000 {
-                if (theWork.pressedStop) { theWork.pressedStop = false; break }
+                if (wallHeInstance.pressedStop) { wallHeInstance.pressedStop = false; break }
                 theFilelist.remove(at: Int.random(in: 0..<theFilelist.count))
             }
         }
@@ -504,109 +513,4 @@ func getSubDirs2(_ pathsToSearch: [String]) -> Array<String> { // Specify the ro
         DispatchQueue.main.async { vc.stopAnimation() }
     }
     return subFolders ?? ["/"]
-}
-
-class saveReadJson {
-    
-    private var path:[URL]
-    private var theFileName:URL
-    
-    init() {
-        path = []
-        theFileName = URL(string: "/tmp/file.json")!
-    }
-    
-    var pathToSave: [URL] {
-        get { return path }
-        set { path = newValue }
-    }
-    
-    var fullyQualifiedFileName: URL {
-        get { return theFileName }
-        set { theFileName = newValue }
-    }
-    
-    func saveDocumentDirectory() {
-        let filePath = getFilename()
-        if filePath != nil {
-            let levels = pathToSave
-            let json = try? JSONEncoder().encode(levels)
-            do {
-                 try json!.write(to: filePath!)
-                     fullyQualifiedFileName = filePath!
-            } catch {
-                print("Failed to write JSON data: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    func saveExisting() {
-        if FileManager().fileExists(atPath: fullyQualifiedFileName.path) {
-            print("pathtosave:\(pathToSave) \nfully:\(fullyQualifiedFileName)")
-            let json = try? JSONEncoder().encode(pathToSave)
-            do {
-                 try json!.write(to: fullyQualifiedFileName)
-            } catch {
-                print("Failed to write JSON data: \(error.localizedDescription)")
-            }
-        }
-    }
-    
-    func openDocument() -> [URL] {
-        let fileName = getDocument()
-        if fileName == nil { return [] }
-        do {
-            fullyQualifiedFileName = fileName!
-            let data = try Data(contentsOf: fileName!, options: .mappedIfSafe)
-            let decoder = JSONDecoder()
-            let paths: [URL] = try! decoder.decode([URL].self, from: data)
-            return paths
-        } catch { print("\(error)") }
-        return []
-    }
-    
-    private func getDocument() -> URL? {
-        let dialog = NSOpenPanel();
-        dialog.title                   = "Choose file";
-        dialog.showsResizeIndicator    = true;
-        dialog.showsHiddenFiles        = false;
-        dialog.allowsMultipleSelection = false;
-        dialog.canChooseDirectories = false
-        dialog.canChooseFiles = true
-        
-        if (dialog.runModal() ==  NSApplication.ModalResponse.OK) {
-            let result = dialog.url! // Pathname of the file
-            print("Result = \(String(describing: result))")
-            if (!result.pathComponents.isEmpty) {
-                return result
-            }
-        }
-        // "Cancel" was clicked
-        return nil //URL(string: "/")!
-    }
-    
-    private func getDocumentsDirectory() -> URL {
-        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-        return paths[0]
-    }
-    
-    func getFilename() -> URL? {
-        let dialog = NSSavePanel()
-        dialog.title = "Save set to:"
-        dialog.canCreateDirectories = true
-        dialog.directoryURL = getDocumentsDirectory()
-        dialog.runModal()
-        print("dialog.url = \(String(describing: dialog.url!))")
-        return dialog.url
-    }
-    
-    private func append(toPath path: String, withPathComponent pathComponent: String) -> String? {
-        if var pathURL = URL(string: path) {
-            pathURL.appendPathComponent(pathComponent)
-            
-            return pathURL.absoluteString
-        }
-        
-        return nil
-    }
 }
