@@ -26,6 +26,7 @@
 
 import Foundation
 import Cocoa
+import SQLite3
 import SwiftImage // https://github.com/koher/swift-image.git
 
 let wallHeInstance = wallhe()
@@ -67,12 +68,35 @@ class wallhe {
         } catch { errorMessage("Unable to create temporary directory.") }
     }
     
+    func restartDock() {
+        let task = Process()
+        task.launchPath = "/usr/bin/killall"
+        task.arguments = ["Dock"]
+        task.launch()
+        task.waitUntilExit()
+    }
+    
     @objc func spaceChanged() {
-            // update wallpaper when user moved to another desktop space
+        // update wallpaper when user moved to another desktop space
         if previousFileURL?.absoluteString != nil {
             DispatchQueue.global().async {
                 setBackground(theURL: previousFileURL!.absoluteString)
             }
+            print("\(#line): Desktop change detected. \(previousFileURL!.absoluteString)")
+            let paths: [String] = NSSearchPathForDirectoriesInDomains(.applicationSupportDirectory,
+                                                                      .userDomainMask, true)
+            let appSup: String = paths.first!
+            let dbPath: String = (appSup as NSString).appendingPathComponent("Dock/desktoppicture.db")
+            var db: OpaquePointer? = nil
+            if sqlite3_open(dbPath, &db) == SQLITE_OK {
+               if sqlite3_exec(db, "UPDATE DATA SET VALUE = ('\(previousFileURL!.absoluteString)');", nil, nil, nil) != SQLITE_OK {
+                         let errmsg = String(cString: sqlite3_errmsg(db))
+                         print("error inserting table row: \(errmsg)")
+                     }
+                    sleep(1)
+                    //restartDock()
+                 }
+                 sqlite3_close(db)
         }
     }
     
