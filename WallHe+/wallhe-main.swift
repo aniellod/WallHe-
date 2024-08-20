@@ -9,9 +9,7 @@
 //  Parts were converted to Swift 5.5 from Objective-C by Swiftify v5.5.22755 - https://swiftify.com/
 //  Inspired by Wally by Antonio Di Monaco
 //
-//  Warning - very buggy and little error checking. Unapologetic cargo culting...
-//  Warning - Aiming for MVP not perfection.
-//
+//  Warning - very buggy and little error checking.
 //
 //  Requirements:
 //      Swift-Image to handle .png:     https://github.com/koher/swift-image.git
